@@ -490,6 +490,54 @@ form {
     margin-top: 30px;
 }
 
+/* Assignee checkboxes */
+.assignee-checkboxes {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px;
+    background: #f9f9f9;
+}
+
+.assignee-checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.assignee-checkbox:hover {
+    background-color: #e9ecef;
+}
+
+.assignee-checkbox input[type="checkbox"] {
+    margin-right: 10px;
+    transform: scale(1.2);
+}
+
+.assignee-checkbox label {
+    cursor: pointer;
+    font-weight: 500;
+    color: #333;
+    flex: 1;
+}
+
+.assignee-checkbox .assignee-email {
+    font-size: 0.85em;
+    color: #666;
+    margin-left: 10px;
+}
+
+.form-help {
+    color: #666;
+    font-size: 0.85em;
+    margin-top: 5px;
+    display: block;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .container {

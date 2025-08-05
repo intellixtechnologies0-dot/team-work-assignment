@@ -145,10 +145,11 @@
                         <textarea id="taskDescription" rows="3" required></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="taskAssignee">Assign To:</label>
-                        <select id="taskAssignee" required>
-                            <option value="">Select a team member</option>
-                        </select>
+                        <label for="taskAssignees">Assign To:</label>
+                        <div id="assigneeCheckboxes" class="assignee-checkboxes">
+                            <!-- Checkboxes will be populated dynamically -->
+                        </div>
+                        <small class="form-help">Select one or more team members</small>
                     </div>
                     <div class="form-group">
                         <label for="taskPriority">Priority:</label>
