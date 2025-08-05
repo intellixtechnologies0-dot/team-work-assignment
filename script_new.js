@@ -9,6 +9,7 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 let teamMembers = [];
 let tasks = [];
+let taskAssignments = [];
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -105,6 +106,7 @@ async function signOut() {
         currentUser = null;
         teamMembers = [];
         tasks = [];
+        taskAssignments = [];
         showLoginScreen();
         showNotification('Successfully signed out!', 'success');
     } catch (error) {
@@ -212,7 +214,7 @@ function updateUIForUserRole(isAdmin) {
 function openModal(modalId) {
     document.getElementById(modalId).style.display = 'block';
     if (modalId === 'taskModal') {
-        updateAssigneeOptions();
+        updateAssigneeCheckboxes();
     }
 }
 
@@ -273,13 +275,13 @@ async function deleteMember(memberId) {
     }
     
     try {
-        // Update tasks to unassigned
-        const { error: taskError } = await supabase
-            .from('tasks')
-            .update({ assignee_id: null, assignee_name: 'Unassigned' })
+        // Delete task assignments for this member
+        const { error: assignmentError } = await supabase
+            .from('task_assignments')
+            .delete()
             .eq('assignee_id', memberId);
         
-        if (taskError) throw taskError;
+        if (assignmentError) throw assignmentError;
         
         // Delete team member
         const { error } = await supabase
@@ -371,40 +373,52 @@ async function handleAddTask(event) {
     
     const title = document.getElementById('taskTitle').value.trim();
     const description = document.getElementById('taskDescription').value.trim();
-    const assigneeId = document.getElementById('taskAssignee').value;
     const priority = document.getElementById('taskPriority').value;
     const dueDate = document.getElementById('taskDueDate').value;
     
-    if (!title || !description || !assigneeId || !priority || !dueDate) {
+    // Get selected assignees
+    const selectedAssignees = getSelectedAssignees();
+    
+    if (!title || !description || !priority || !dueDate) {
         showNotification('Please fill in all fields', 'error');
         return;
     }
     
-    const assignee = teamMembers.find(member => member.id === assigneeId);
-    
-    if (!assignee) {
-        showNotification('Selected team member not found', 'error');
+    if (selectedAssignees.length === 0) {
+        showNotification('Please select at least one team member', 'error');
         return;
     }
     
     try {
-        const { data, error } = await supabase
+        // Create the task first
+        const { data: taskData, error: taskError } = await supabase
             .from('tasks')
             .insert([
                 {
                     title: title,
                     description: description,
-                    assignee_id: assigneeId,
-                    assignee_name: assignee.name,
                     priority: priority,
                     due_date: dueDate,
-                    status: 'todo',
                     created_by: currentUser.id
                 }
             ])
-            .select();
+            .select()
+            .single();
         
-        if (error) throw error;
+        if (taskError) throw taskError;
+        
+        // Create task assignments for each selected assignee
+        const assignments = selectedAssignees.map(assignee => ({
+            task_id: taskData.id,
+            assignee_id: assignee.id,
+            assignee_name: assignee.name
+        }));
+        
+        const { error: assignmentError } = await supabase
+            .from('task_assignments')
+            .insert(assignments);
+        
+        if (assignmentError) throw assignmentError;
         
         await loadTasks();
         closeModal('taskModal');
@@ -414,18 +428,56 @@ async function handleAddTask(event) {
     }
 }
 
+function getSelectedAssignees() {
+    const checkboxes = document.querySelectorAll('#assigneeCheckboxes input[type="checkbox"]:checked');
+    return Array.from(checkboxes).map(checkbox => ({
+        id: checkbox.value,
+        name: checkbox.getAttribute('data-name')
+    }));
+}
+
+function updateAssigneeCheckboxes() {
+    const checkboxesContainer = document.getElementById('assigneeCheckboxes');
+    
+    if (teamMembers.length === 0) {
+        checkboxesContainer.innerHTML = '<p>No team members available. Please add team members first.</p>';
+        return;
+    }
+    
+    checkboxesContainer.innerHTML = teamMembers.map(member => `
+        <div class="assignee-checkbox">
+            <input type="checkbox" id="assignee_${member.id}" value="${member.id}" data-name="${member.name}">
+            <label for="assignee_${member.id}">
+                ${member.name}
+                <span class="assignee-email">(${member.email})</span>
+            </label>
+        </div>
+    `).join('');
+}
+
 async function updateTaskStatus(taskId, newStatus) {
     try {
+        // Get the current user's team member ID
+        const teamMemberId = await getCurrentUserTeamMemberId();
+        
+        if (!teamMemberId) {
+            showNotification('Unable to find your team member record', 'error');
+            return;
+        }
+        
+        // Update the specific assignment status
         const { error } = await supabase
-            .from('tasks')
+            .from('task_assignments')
             .update({ status: newStatus })
-            .eq('id', taskId);
+            .eq('task_id', taskId)
+            .eq('assignee_id', teamMemberId);
         
         if (error) throw error;
         
         await loadTasks();
         showNotification('Task status updated!', 'success');
     } catch (error) {
+        console.error('Error updating task status:', error);
         showNotification(error.message, 'error');
     }
 }
@@ -441,6 +493,7 @@ async function deleteTask(taskId) {
     }
     
     try {
+        // Task assignments will be deleted automatically due to CASCADE
         const { error } = await supabase
             .from('tasks')
             .delete()
@@ -459,28 +512,27 @@ async function loadTasks() {
     try {
         let query = supabase
             .from('tasks')
-            .select('*')
+            .select(`
+                *,
+                task_assignments (
+                    id,
+                    assignee_id,
+                    assignee_name,
+                    status
+                )
+            `)
             .order('created_at', { ascending: false });
         
         // If not admin, only show tasks assigned to current user
         if (!window.isAdmin) {
-            // For team members, we need to find tasks assigned to them by email
-            // First, let's get the team member record for the current user
-            const { data: memberData, error: memberError } = await supabase
-                .from('team_members')
-                .select('id')
-                .eq('email', currentUser.email)
-                .single();
-            
-            if (memberError) {
-                console.log('No team member record found for:', currentUser.email);
+            const teamMemberId = await getCurrentUserTeamMemberId();
+            if (!teamMemberId) {
                 tasks = [];
                 renderTasks();
                 return;
             }
             
-            // Now filter tasks by the team member ID
-            query = query.eq('assignee_id', memberData.id);
+            query = query.eq('task_assignments.assignee_id', teamMemberId);
         }
         
         const { data, error } = await query;
@@ -488,23 +540,91 @@ async function loadTasks() {
         if (error) throw error;
         
         tasks = data || [];
-        renderTasks();
+        await renderTasks();
     } catch (error) {
         console.error('Error loading tasks:', error);
         showNotification('Error loading tasks', 'error');
     }
 }
 
-function renderTasks() {
-    const todoTasks = tasks.filter(task => task.status === 'todo');
-    const inProgressTasks = tasks.filter(task => task.status === 'inProgress');
-    const completedTasks = tasks.filter(task => task.status === 'completed');
+async function getCurrentUserTeamMemberId() {
+    try {
+        console.log('Getting team member ID for email:', currentUser.email);
+        const { data, error } = await supabase
+            .from('team_members')
+            .select('id')
+            .eq('email', currentUser.email)
+            .single();
+        
+        if (error) {
+            console.log('No team member record found for:', currentUser.email);
+            return null;
+        }
+        
+        console.log('Found team member ID:', data.id);
+        return data.id;
+    } catch (error) {
+        console.error('Error getting team member ID:', error);
+        return null;
+    }
+}
+
+async function renderTasks() {
+    const todoTasks = [];
+    const inProgressTasks = [];
+    const completedTasks = [];
+    
+    // Get current user's team member ID for filtering
+    let currentUserTeamMemberId = null;
+    if (!window.isAdmin) {
+        currentUserTeamMemberId = await getCurrentUserTeamMemberId();
+    }
+    
+    tasks.forEach(task => {
+        if (!task.task_assignments || task.task_assignments.length === 0) {
+            return;
+        }
+        
+        // For admin, show all assignments
+        // For team members, only show their assignments
+        const relevantAssignments = window.isAdmin 
+            ? task.task_assignments 
+            : task.task_assignments.filter(assignment => 
+                assignment.assignee_id === currentUserTeamMemberId
+            );
+        
+        relevantAssignments.forEach(assignment => {
+            const taskWithAssignment = {
+                ...task,
+                assignment: assignment,
+                assignee_name: assignment.assignee_name,
+                status: assignment.status
+            };
+            
+            switch (assignment.status) {
+                case 'todo':
+                    todoTasks.push(taskWithAssignment);
+                    break;
+                case 'inProgress':
+                    inProgressTasks.push(taskWithAssignment);
+                    break;
+                case 'completed':
+                    completedTasks.push(taskWithAssignment);
+                    break;
+            }
+        });
+    });
     
     renderTaskColumn('todoTasks', todoTasks);
     renderTaskColumn('inProgressTasks', inProgressTasks);
     renderTaskColumn('completedTasks', completedTasks);
     
     setupDragAndDrop();
+}
+
+function getCurrentUserDisplayName() {
+    // For now, use email prefix as display name
+    return currentUser.email.split('@')[0];
 }
 
 function renderTaskColumn(columnId, taskList) {
@@ -521,7 +641,7 @@ function renderTaskColumn(columnId, taskList) {
     }
     
     column.innerHTML = taskList.map(task => `
-        <div class="task-card ${task.priority}-priority" draggable="true" data-task-id="${task.id}">
+        <div class="task-card ${task.priority}-priority" draggable="true" data-task-id="${task.id}" data-assignment-id="${task.assignment.id}">
             <div class="task-header">
                 <div class="task-title">${task.title}</div>
                 <div class="task-priority priority-${task.priority}">${task.priority}</div>
@@ -567,18 +687,6 @@ function getNextStatusButtonText(currentStatus) {
         'completed': 'Completed'
     };
     return buttonTexts[currentStatus] || 'Start';
-}
-
-function updateAssigneeOptions() {
-    const assigneeSelect = document.getElementById('taskAssignee');
-    assigneeSelect.innerHTML = '<option value="">Select a team member</option>';
-    
-    teamMembers.forEach(member => {
-        const option = document.createElement('option');
-        option.value = member.id;
-        option.textContent = member.name;
-        assigneeSelect.appendChild(option);
-    });
 }
 
 // Drag and Drop functionality
