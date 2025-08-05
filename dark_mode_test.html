@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Mode Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4a5568;
+        }
+
+        /* Dark Mode Styles */
+        .dark-mode {
+            background: #1a1a1a !important;
+            color: #ffffff !important;
+        }
+
+        .dark-mode .container {
+            background: #2d3748 !important;
+            color: #ffffff !important;
+        }
+
+        .dark-mode h1 {
+            color: #ffffff !important;
+        }
+
+        .dark-mode .test-section {
+            border-color: #4a5568 !important;
+            background: #1a202c !important;
+        }
+
+        .dark-mode .btn-secondary {
+            background: #4a5568 !important;
+            color: #ffffff !important;
+        }
+
+        .dark-mode .btn-secondary:hover {
+            background: #718096 !important;
+        }
+
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .status.success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status.error {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .status.info {
+            background: #bee3f8;
+            color: #2a4365;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌙 Dark Mode Test Page</h1>
+        
+        <div class="test-section">
+            <h2>Test Controls</h2>
+            <button class="btn btn-primary" onclick="testToggleDarkMode()">
+                <i class="fas fa-moon"></i> Toggle Dark Mode
+            </button>
+            <button class="btn btn-secondary" onclick="checkDarkModeStatus()">
+                Check Status
+            </button>
+            <button class="btn btn-secondary" onclick="clearDarkMode()">
+                Clear Dark Mode
+            </button>
+        </div>
+
+        <div class="test-section">
+            <h2>Status Information</h2>
+            <div id="statusDisplay">
+                <div class="status info">Click "Check Status" to see current dark mode state</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test Content</h2>
+            <p>This is a test paragraph to see how text looks in both light and dark modes.</p>
+            <p>If dark mode is working, this text should be white on a dark background when toggled.</p>
+        </div>
+
+        <div class="test-section">
+            <h2>Console Logs</h2>
+            <p>Open your browser's developer console (F12) to see detailed logs when you click the buttons.</p>
+        </div>
+    </div>
+
+    <script>
+        // Dark Mode Functions (same as in main app)
+        function initializeDarkMode() {
+            console.log('Initializing dark mode...');
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            console.log('Dark mode from localStorage:', isDarkMode);
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+                console.log('Dark mode applied');
+            }
+        }
+
+        function toggleDarkMode() {
+            console.log('Toggle dark mode called');
+            const isDarkMode = document.body.classList.toggle('dark-mode');
+            console.log('Dark mode toggled to:', isDarkMode);
+            localStorage.setItem('darkMode', isDarkMode);
+            console.log('Dark mode saved to localStorage');
+            return isDarkMode;
+        }
+
+        function testToggleDarkMode() {
+            console.log('=== Testing Dark Mode Toggle ===');
+            const isDarkMode = toggleDarkMode();
+            showStatus(`Dark mode ${isDarkMode ? 'enabled' : 'disabled'}`, isDarkMode ? 'success' : 'info');
+        }
+
+        function checkDarkModeStatus() {
+            console.log('=== Checking Dark Mode Status ===');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            const localStorageValue = localStorage.getItem('darkMode');
+            console.log('Body has dark-mode class:', isDarkMode);
+            console.log('localStorage value:', localStorageValue);
+            console.log('localStorage parsed:', localStorageValue === 'true');
+            
+            let statusText = `Body class: ${isDarkMode ? 'dark-mode' : 'none'}<br>`;
+            statusText += `localStorage: ${localStorageValue}<br>`;
+            statusText += `Status: ${isDarkMode ? 'Dark Mode Active' : 'Light Mode Active'}`;
+            
+            showStatus(statusText, isDarkMode ? 'success' : 'info');
+        }
+
+        function clearDarkMode() {
+            console.log('=== Clearing Dark Mode ===');
+            document.body.classList.remove('dark-mode');
+            localStorage.removeItem('darkMode');
+            console.log('Dark mode cleared from body and localStorage');
+            showStatus('Dark mode cleared', 'info');
+        }
+
+        function showStatus(message, type) {
+            const statusDisplay = document.getElementById('statusDisplay');
+            statusDisplay.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== Page Loaded ===');
+            initializeDarkMode();
+            checkDarkModeStatus();
+        });
+
+        // Expose functions globally for testing
+        window.testToggleDarkMode = testToggleDarkMode;
+        window.checkDarkModeStatus = checkDarkModeStatus;
+        window.clearDarkMode = clearDarkMode;
+        window.toggleDarkMode = toggleDarkMode;
+    </script>
+</body>
+</html> 

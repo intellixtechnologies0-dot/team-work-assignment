@@ -32,8 +32,23 @@ body {
 
 .login-header h1 {
     color: #2d3748;
-    font-size: 2rem;
-    margin-bottom: 10px;
+    font-size: 2.2rem;
+    margin-bottom: 5px;
+    font-weight: 700;
+}
+
+.login-header h2 {
+    color: #667eea;
+    font-size: 1.4rem;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.login-header h3 {
+    color: #718096;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    font-weight: 500;
 }
 
 .login-header p {
@@ -136,8 +151,25 @@ body {
 
 .header-content h1 {
     font-size: 2.5rem;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    font-weight: 700;
+}
+
+.header-content h2 {
+    color: #e2e8f0;
+    font-size: 1.6rem;
+    margin-bottom: 5px;
+    font-weight: 600;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.header-content h3 {
+    color: #cbd5e0;
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    font-weight: 500;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
 
 .header-content p {
@@ -553,6 +585,14 @@ form {
         font-size: 2rem;
     }
     
+    .header-content h2 {
+        font-size: 1.3rem;
+    }
+    
+    .header-content h3 {
+        font-size: 1rem;
+    }
+    
     .section {
         padding: 20px;
     }
@@ -588,6 +628,14 @@ form {
 @media (max-width: 480px) {
     .header-content h1 {
         font-size: 1.8rem;
+    }
+    
+    .header-content h2 {
+        font-size: 1.1rem;
+    }
+    
+    .header-content h3 {
+        font-size: 0.9rem;
     }
     
     .section {
@@ -749,6 +797,14 @@ form {
 
 .dark-mode .login-header h1 {
     color: #ffffff;
+}
+
+.dark-mode .login-header h2 {
+    color: #90cdf4;
+}
+
+.dark-mode .login-header h3 {
+    color: #a0aec0;
 }
 
 .dark-mode .login-header p {
