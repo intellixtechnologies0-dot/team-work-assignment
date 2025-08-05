@@ -843,13 +843,6 @@ form {
 }
 
 /* Work Proof styles */
-.form-help {
-    color: #666;
-    font-size: 0.85em;
-    margin-top: 4px;
-    display: block;
-}
-
 .work-proof-badge {
     display: inline-block;
     background: #28a745;
@@ -920,14 +913,4 @@ form {
 
 .btn-attach i {
     color: white;
-}
-
-/* Dark mode support for purple attach button */
-.dark-mode .btn-attach {
-    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-}
-
-.dark-mode .btn-attach:hover {
-    background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
-    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
 }
