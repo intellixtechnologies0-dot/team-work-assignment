@@ -116,21 +116,48 @@ async function signOut() {
 
 async function loadUserProfile() {
     try {
-        const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', currentUser.id)
-            .single();
-        
-        if (error) throw error;
-        
-        // Check if user is admin
+        // Check if user is admin first
         const isAdmin = currentUser.email === 'vrreddypc143@gmail.com';
-        
-        document.getElementById('userName').textContent = `Welcome, ${data.name}!`;
+        console.log('User email:', currentUser.email);
+        console.log('Is admin:', isAdmin);
         
         // Store admin status globally
         window.isAdmin = isAdmin;
+        
+        // Try to get user profile, but don't fail if it doesn't exist
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+            
+            if (error) {
+                console.log('Profile not found, creating one...');
+                // Create profile if it doesn't exist
+                const { error: createError } = await supabase
+                    .from('profiles')
+                    .insert([
+                        {
+                            id: currentUser.id,
+                            name: currentUser.email.split('@')[0], // Use email prefix as name
+                            email: currentUser.email,
+                            role: isAdmin ? 'Admin' : 'Member'
+                        }
+                    ]);
+                
+                if (createError) {
+                    console.error('Error creating profile:', createError);
+                }
+                
+                document.getElementById('userName').textContent = `Welcome, ${currentUser.email.split('@')[0]}!`;
+            } else {
+                document.getElementById('userName').textContent = `Welcome, ${data.name}!`;
+            }
+        } catch (profileError) {
+            console.error('Profile error:', profileError);
+            document.getElementById('userName').textContent = `Welcome, ${currentUser.email.split('@')[0]}!`;
+        }
         
         // Show/hide admin features based on role
         updateUIForUserRole(isAdmin);
@@ -152,17 +179,34 @@ function showMainApp() {
 }
 
 function updateUIForUserRole(isAdmin) {
+    console.log('Updating UI for user role. Is admin:', isAdmin);
+    
     const addMemberBtn = document.getElementById('addMemberBtn');
     const createTaskBtn = document.getElementById('createTaskBtn');
     
+    console.log('Add member button found:', !!addMemberBtn);
+    console.log('Create task button found:', !!createTaskBtn);
+    
     if (isAdmin) {
         // Admin can see all features
-        if (addMemberBtn) addMemberBtn.style.display = 'inline-flex';
-        if (createTaskBtn) createTaskBtn.style.display = 'inline-flex';
+        if (addMemberBtn) {
+            addMemberBtn.style.display = 'inline-flex';
+            console.log('Showing add member button');
+        }
+        if (createTaskBtn) {
+            createTaskBtn.style.display = 'inline-flex';
+            console.log('Showing create task button');
+        }
     } else {
         // Regular users can only view their tasks
-        if (addMemberBtn) addMemberBtn.style.display = 'none';
-        if (createTaskBtn) createTaskBtn.style.display = 'none';
+        if (addMemberBtn) {
+            addMemberBtn.style.display = 'none';
+            console.log('Hiding add member button');
+        }
+        if (createTaskBtn) {
+            createTaskBtn.style.display = 'none';
+            console.log('Hiding create task button');
+        }
     }
 }
 
