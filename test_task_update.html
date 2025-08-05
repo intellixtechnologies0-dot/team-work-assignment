@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Update Test</title>
+    <title>Task Update Test - Detailed</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Task Update Test</h1>
-        <p>This page tests if team members can update task status</p>
+        <h1>🔧 Task Update Test - Detailed</h1>
+        <p>This page tests database permissions and task status updates</p>
         
         <div id="loginSection">
             <h2>Step 1: Sign In</h2>
@@ -23,8 +23,9 @@
         </div>
         
         <div id="testSection" style="display: none;">
-            <h2>Step 2: Test Task Updates</h2>
+            <h2>Step 2: Test Database Permissions</h2>
             <div id="userInfo"></div>
+            <div id="permissionTest"></div>
             <div id="tasksList"></div>
             <div id="testResults"></div>
         </div>
@@ -62,9 +63,11 @@
                 
                 document.getElementById('userInfo').innerHTML = `
                     <p><strong>Logged in as:</strong> ${currentUser.email}</p>
+                    <p><strong>User ID:</strong> ${currentUser.id}</p>
                     <p><strong>Is Admin:</strong> ${currentUser.email === 'vrreddypc143@gmail.com' ? 'Yes' : 'No'}</p>
                 `;
                 
+                await testDatabasePermissions();
                 await loadTasksForTest();
                 
             } catch (error) {
@@ -72,6 +75,85 @@
                 alert('Sign in failed: ' + error.message);
             }
         });
+        
+        async function testDatabasePermissions() {
+            const permissionTest = document.getElementById('permissionTest');
+            permissionTest.innerHTML = '<h3>🔍 Testing Database Permissions...</h3>';
+            
+            try {
+                // Test 1: Can read tasks
+                console.log('🔍 TEST: Testing READ permission on tasks...');
+                const { data: readData, error: readError } = await supabase
+                    .from('tasks')
+                    .select('id, title, status')
+                    .limit(1);
+                
+                if (readError) {
+                    permissionTest.innerHTML += `
+                        <div style="color: red; padding: 10px; border: 1px solid red; margin: 5px 0;">
+                            ❌ <strong>READ Error:</strong> ${readError.message}
+                        </div>
+                    `;
+                } else {
+                    permissionTest.innerHTML += `
+                        <div style="color: green; padding: 10px; border: 1px solid green; margin: 5px 0;">
+                            ✅ <strong>READ Success:</strong> Can read tasks (${readData?.length || 0} found)
+                        </div>
+                    `;
+                }
+                
+                // Test 2: Can update tasks (try to update a test task)
+                console.log('🔍 TEST: Testing UPDATE permission on tasks...');
+                const { data: updateData, error: updateError } = await supabase
+                    .from('tasks')
+                    .update({ status: 'test' })
+                    .eq('id', '999999') // Non-existent ID to test permission
+                    .select();
+                
+                if (updateError) {
+                    permissionTest.innerHTML += `
+                        <div style="color: red; padding: 10px; border: 1px solid red; margin: 5px 0;">
+                            ❌ <strong>UPDATE Error:</strong> ${updateError.message}
+                        </div>
+                    `;
+                } else {
+                    permissionTest.innerHTML += `
+                        <div style="color: green; padding: 10px; border: 1px solid green; margin: 5px 0;">
+                            ✅ <strong>UPDATE Success:</strong> Can update tasks
+                        </div>
+                    `;
+                }
+                
+                // Test 3: Check team member record
+                console.log('🔍 TEST: Testing team member lookup...');
+                const { data: memberData, error: memberError } = await supabase
+                    .from('team_members')
+                    .select('id, name, email')
+                    .eq('email', currentUser.email)
+                    .single();
+                
+                if (memberError) {
+                    permissionTest.innerHTML += `
+                        <div style="color: red; padding: 10px; border: 1px solid red; margin: 5px 0;">
+                            ❌ <strong>Team Member Error:</strong> ${memberError.message}
+                        </div>
+                    `;
+                } else {
+                    permissionTest.innerHTML += `
+                        <div style="color: green; padding: 10px; border: 1px solid green; margin: 5px 0;">
+                            ✅ <strong>Team Member Found:</strong> ${memberData.name} (ID: ${memberData.id})
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                permissionTest.innerHTML += `
+                    <div style="color: red; padding: 10px; border: 1px solid red; margin: 5px 0;">
+                        ❌ <strong>Permission Test Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
         
         async function loadTasksForTest() {
             try {
@@ -137,10 +219,12 @@
                 ${tasks.map(task => `
                     <div style="border: 1px solid #ccc; margin: 10px 0; padding: 15px; border-radius: 5px;">
                         <h4>${task.title}</h4>
+                        <p><strong>Task ID:</strong> ${task.id}</p>
                         <p><strong>Status:</strong> <span id="status-${task.id}">${task.status}</span></p>
                         <p><strong>Description:</strong> ${task.description}</p>
                         <p><strong>Priority:</strong> ${task.priority}</p>
                         <p><strong>Due Date:</strong> ${task.due_date}</p>
+                        <p><strong>Assignee ID:</strong> ${task.assignee_id}</p>
                         
                         <div style="margin-top: 10px;">
                             ${task.status === 'todo' ? `
@@ -164,17 +248,32 @@
             try {
                 console.log('🔍 TEST: Updating task status:', taskId, 'to', newStatus);
                 
-                const { error } = await supabase
+                // First, let's check if we can read this specific task
+                const { data: readData, error: readError } = await supabase
+                    .from('tasks')
+                    .select('*')
+                    .eq('id', taskId)
+                    .single();
+                
+                if (readError) {
+                    throw new Error(`Cannot read task: ${readError.message}`);
+                }
+                
+                console.log('🔍 TEST: Task before update:', readData);
+                
+                // Now try to update
+                const { data, error } = await supabase
                     .from('tasks')
                     .update({ status: newStatus })
-                    .eq('id', taskId);
+                    .eq('id', taskId)
+                    .select();
                 
                 if (error) {
                     console.error('🔍 TEST: Update error:', error);
                     throw error;
                 }
                 
-                console.log('🔍 TEST: Status updated successfully');
+                console.log('🔍 TEST: Status updated successfully:', data);
                 
                 // Update the display immediately
                 document.getElementById(`status-${taskId}`).textContent = newStatus;
@@ -185,6 +284,7 @@
                 document.getElementById('testResults').innerHTML = `
                     <div style="color: green; padding: 10px; border: 1px solid green; margin-top: 10px;">
                         <strong>✅ Success!</strong> Task status updated to "${newStatus}"
+                        <br><small>Task ID: ${taskId}</small>
                     </div>
                 `;
                 
@@ -193,6 +293,7 @@
                 document.getElementById('testResults').innerHTML = `
                     <div style="color: red; padding: 10px; border: 1px solid red; margin-top: 10px;">
                         <strong>❌ Error updating status:</strong> ${error.message}
+                        <br><small>Task ID: ${taskId}</small>
                     </div>
                 `;
             }
