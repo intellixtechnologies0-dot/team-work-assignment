@@ -300,13 +300,7 @@ async function deleteMember(memberId) {
 
 async function loadTeamMembers() {
     try {
-        // Only admin can see team members list
-        if (!window.isAdmin) {
-            teamMembers = [];
-            renderTeamMembers();
-            return;
-        }
-        
+        // All users can see team members list
         const { data, error } = await supabase
             .from('team_members')
             .select('*')
@@ -325,16 +319,6 @@ async function loadTeamMembers() {
 function renderTeamMembers() {
     const membersGrid = document.getElementById('membersGrid');
     
-    if (!window.isAdmin) {
-        membersGrid.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-user-friends"></i>
-                <p>Team member management is only available to administrators.</p>
-            </div>
-        `;
-        return;
-    }
-    
     if (teamMembers.length === 0) {
         membersGrid.innerHTML = `
             <div class="empty-state">
@@ -352,11 +336,13 @@ function renderTeamMembers() {
                 <p><i class="fas fa-envelope"></i> ${member.email}</p>
                 <p><i class="fas fa-briefcase"></i> ${member.role}</p>
             </div>
-            <div class="member-actions">
-                <button class="btn btn-small btn-danger" onclick="deleteMember('${member.id}')">
-                    <i class="fas fa-trash"></i> Remove
-                </button>
-            </div>
+            ${window.isAdmin ? `
+                <div class="member-actions">
+                    <button class="btn btn-small btn-danger" onclick="deleteMember('${member.id}')">
+                        <i class="fas fa-trash"></i> Remove
+                    </button>
+                </div>
+            ` : ''}
         </div>
     `).join('');
 }
