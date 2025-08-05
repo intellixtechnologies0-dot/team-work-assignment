@@ -6,129 +6,198 @@
     <title>Team Work Assignment</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <h1><i class="fas fa-users"></i> Team Work Assignment</h1>
-            <p>Manage and assign tasks to your team members efficiently</p>
-        </header>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <div class="login-header">
+                <h1><i class="fas fa-users"></i> Team Work Assignment</h1>
+                <p>Sign in to access your team workspace</p>
+            </div>
+            
+            <div class="login-tabs">
+                <button class="tab-btn active" onclick="showTab('signin')">Sign In</button>
+                <button class="tab-btn" onclick="showTab('signup')">Sign Up</button>
+            </div>
+            
+            <!-- Sign In Form -->
+            <form id="signinForm" class="login-form">
+                <div class="form-group">
+                    <label for="signinEmail">Email:</label>
+                    <input type="email" id="signinEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="signinPassword">Password:</label>
+                    <input type="password" id="signinPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
+            
+            <!-- Sign Up Form -->
+            <form id="signupForm" class="login-form" style="display: none;">
+                <div class="form-group">
+                    <label for="signupName">Full Name:</label>
+                    <input type="text" id="signupName" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupEmail">Email:</label>
+                    <input type="email" id="signupEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword">Password:</label>
+                    <input type="password" id="signupPassword" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="signupRole">Role:</label>
+                    <input type="text" id="signupRole" required placeholder="e.g., Developer, Designer, Manager">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">
+                    <i class="fas fa-user-plus"></i> Sign Up
+                </button>
+            </form>
+            
+            <div class="login-footer">
+                <p>Secure authentication powered by Supabase</p>
+            </div>
+        </div>
+    </div>
 
-        <div class="main-content">
-            <!-- Team Members Section -->
-            <section class="section">
-                <div class="section-header">
-                    <h2><i class="fas fa-user-friends"></i> Team Members</h2>
-                    <button class="btn btn-primary" onclick="openModal('memberModal')">
-                        <i class="fas fa-plus"></i> Add Member
+    <!-- Main Application (Hidden until logged in) -->
+    <div id="mainApp" class="main-app" style="display: none;">
+        <div class="container">
+            <header class="header">
+                <div class="header-content">
+                    <h1><i class="fas fa-users"></i> Team Work Assignment</h1>
+                    <p>Manage and assign tasks to your team members efficiently</p>
+                </div>
+                <div class="user-info">
+                    <span id="userName">Welcome!</span>
+                    <button class="btn btn-secondary" onclick="signOut()">
+                        <i class="fas fa-sign-out-alt"></i> Sign Out
                     </button>
                 </div>
-                <div class="members-grid" id="membersGrid">
-                    <!-- Team members will be displayed here -->
-                </div>
-            </section>
+            </header>
 
-            <!-- Tasks Section -->
-            <section class="section">
-                <div class="section-header">
-                    <h2><i class="fas fa-tasks"></i> Tasks</h2>
-                    <button class="btn btn-primary" onclick="openModal('taskModal')">
-                        <i class="fas fa-plus"></i> Create Task
-                    </button>
-                </div>
-                <div class="tasks-container">
-                    <div class="task-columns">
-                        <div class="task-column">
-                            <h3>To Do</h3>
-                            <div class="task-list" id="todoTasks">
-                                <!-- Todo tasks will be here -->
+            <div class="main-content">
+                <!-- Team Members Section -->
+                <section class="section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-user-friends"></i> Team Members</h2>
+                        <button class="btn btn-primary" onclick="openModal('memberModal')">
+                            <i class="fas fa-plus"></i> Add Member
+                        </button>
+                    </div>
+                    <div class="members-grid" id="membersGrid">
+                        <!-- Team members will be displayed here -->
+                    </div>
+                </section>
+
+                <!-- Tasks Section -->
+                <section class="section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-tasks"></i> Tasks</h2>
+                        <button class="btn btn-primary" onclick="openModal('taskModal')">
+                            <i class="fas fa-plus"></i> Create Task
+                        </button>
+                    </div>
+                    <div class="tasks-container">
+                        <div class="task-columns">
+                            <div class="task-column">
+                                <h3>To Do</h3>
+                                <div class="task-list" id="todoTasks">
+                                    <!-- Todo tasks will be here -->
+                                </div>
                             </div>
-                        </div>
-                        <div class="task-column">
-                            <h3>In Progress</h3>
-                            <div class="task-list" id="inProgressTasks">
-                                <!-- In progress tasks will be here -->
+                            <div class="task-column">
+                                <h3>In Progress</h3>
+                                <div class="task-list" id="inProgressTasks">
+                                    <!-- In progress tasks will be here -->
+                                </div>
                             </div>
-                        </div>
-                        <div class="task-column">
-                            <h3>Completed</h3>
-                            <div class="task-list" id="completedTasks">
-                                <!-- Completed tasks will be here -->
+                            <div class="task-column">
+                                <h3>Completed</h3>
+                                <div class="task-list" id="completedTasks">
+                                    <!-- Completed tasks will be here -->
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
-        </div>
-    </div>
-
-    <!-- Add Member Modal -->
-    <div id="memberModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add Team Member</h3>
-                <span class="close" onclick="closeModal('memberModal')">&times;</span>
+                </section>
             </div>
-            <form id="memberForm">
-                <div class="form-group">
-                    <label for="memberName">Name:</label>
-                    <input type="text" id="memberName" required>
-                </div>
-                <div class="form-group">
-                    <label for="memberEmail">Email:</label>
-                    <input type="email" id="memberEmail" required>
-                </div>
-                <div class="form-group">
-                    <label for="memberRole">Role:</label>
-                    <input type="text" id="memberRole" required>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('memberModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add Member</button>
-                </div>
-            </form>
         </div>
-    </div>
 
-    <!-- Add Task Modal -->
-    <div id="taskModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Create New Task</h3>
-                <span class="close" onclick="closeModal('taskModal')">&times;</span>
+        <!-- Add Member Modal -->
+        <div id="memberModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Add Team Member</h3>
+                    <span class="close" onclick="closeModal('memberModal')">&times;</span>
+                </div>
+                <form id="memberForm">
+                    <div class="form-group">
+                        <label for="memberName">Name:</label>
+                        <input type="text" id="memberName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="memberEmail">Email:</label>
+                        <input type="email" id="memberEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="memberRole">Role:</label>
+                        <input type="text" id="memberRole" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('memberModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Member</button>
+                    </div>
+                </form>
             </div>
-            <form id="taskForm">
-                <div class="form-group">
-                    <label for="taskTitle">Task Title:</label>
-                    <input type="text" id="taskTitle" required>
+        </div>
+
+        <!-- Add Task Modal -->
+        <div id="taskModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Create New Task</h3>
+                    <span class="close" onclick="closeModal('taskModal')">&times;</span>
                 </div>
-                <div class="form-group">
-                    <label for="taskDescription">Description:</label>
-                    <textarea id="taskDescription" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="taskAssignee">Assign To:</label>
-                    <select id="taskAssignee" required>
-                        <option value="">Select a team member</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="taskPriority">Priority:</label>
-                    <select id="taskPriority" required>
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="taskDueDate">Due Date:</label>
-                    <input type="date" id="taskDueDate" required>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('taskModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create Task</button>
-                </div>
-            </form>
+                <form id="taskForm">
+                    <div class="form-group">
+                        <label for="taskTitle">Task Title:</label>
+                        <input type="text" id="taskTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskDescription">Description:</label>
+                        <textarea id="taskDescription" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskAssignee">Assign To:</label>
+                        <select id="taskAssignee" required>
+                            <option value="">Select a team member</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskPriority">Priority:</label>
+                        <select id="taskPriority" required>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskDueDate">Due Date:</label>
+                        <input type="date" id="taskDueDate" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('taskModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create Task</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 

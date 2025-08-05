@@ -1,23 +1,37 @@
+// Supabase Configuration
+const SUPABASE_URL = 'https://cneoifzzhyvfpxvhsxgp.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuZW9pZnp6aHl2ZnB4dmhzeGdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzOTU4MjksImV4cCI6MjA2OTk3MTgyOX0.oI7M_AqPADdAU_gdtn6r20zyotZQ2N1caiQkCmZXC_I';
+
+// Initialize Supabase client
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 // Global variables
-let teamMembers = JSON.parse(localStorage.getItem('teamMembers')) || [];
-let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+let currentUser = null;
+let teamMembers = [];
+let tasks = [];
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     setupEventListeners();
-    renderTeamMembers();
-    renderTasks();
+    checkAuthStatus();
 });
 
 function initializeApp() {
     // Set minimum date for due date input to today
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('taskDueDate').min = today;
+    const taskDueDateInput = document.getElementById('taskDueDate');
+    if (taskDueDateInput) {
+        taskDueDateInput.min = today;
+    }
 }
 
 function setupEventListeners() {
-    // Form submissions
+    // Authentication forms
+    document.getElementById('signinForm').addEventListener('submit', handleSignIn);
+    document.getElementById('signupForm').addEventListener('submit', handleSignUp);
+    
+    // App forms
     document.getElementById('memberForm').addEventListener('submit', handleAddMember);
     document.getElementById('taskForm').addEventListener('submit', handleAddTask);
     
@@ -27,6 +41,173 @@ function setupEventListeners() {
             event.target.style.display = 'none';
         }
     });
+}
+
+// Authentication Functions
+async function checkAuthStatus() {
+    try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (user && !error) {
+            currentUser = user;
+            showMainApp();
+            await loadUserProfile();
+            await loadTeamMembers();
+            await loadTasks();
+        } else {
+            showLoginScreen();
+        }
+    } catch (error) {
+        console.error('Error checking auth status:', error);
+        showLoginScreen();
+    }
+}
+
+async function handleSignIn(event) {
+    event.preventDefault();
+    
+    const email = document.getElementById('signinEmail').value.trim();
+    const password = document.getElementById('signinPassword').value.trim();
+    
+    if (!email || !password) {
+        showNotification('Please fill in all fields', 'error');
+        return;
+    }
+    
+    try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+        
+        if (error) throw error;
+        
+        currentUser = data.user;
+        showMainApp();
+        await loadUserProfile();
+        await loadTeamMembers();
+        await loadTasks();
+        
+        showNotification('Successfully signed in!', 'success');
+    } catch (error) {
+        showNotification(error.message, 'error');
+    }
+}
+
+async function handleSignUp(event) {
+    event.preventDefault();
+    
+    const name = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value.trim();
+    const role = document.getElementById('signupRole').value.trim();
+    
+    if (!name || !email || !password || !role) {
+        showNotification('Please fill in all fields', 'error');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showNotification('Password must be at least 6 characters', 'error');
+        return;
+    }
+    
+    try {
+        const { data, error } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    name: name,
+                    role: role
+                }
+            }
+        });
+        
+        if (error) throw error;
+        
+        // Create user profile
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .insert([
+                {
+                    id: data.user.id,
+                    name: name,
+                    email: email,
+                    role: role
+                }
+            ]);
+        
+        if (profileError) throw profileError;
+        
+        currentUser = data.user;
+        showMainApp();
+        await loadUserProfile();
+        
+        showNotification('Account created successfully!', 'success');
+    } catch (error) {
+        showNotification(error.message, 'error');
+    }
+}
+
+async function signOut() {
+    try {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+        
+        currentUser = null;
+        teamMembers = [];
+        tasks = [];
+        showLoginScreen();
+        showNotification('Successfully signed out!', 'success');
+    } catch (error) {
+        showNotification(error.message, 'error');
+    }
+}
+
+async function loadUserProfile() {
+    try {
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', currentUser.id)
+            .single();
+        
+        if (error) throw error;
+        
+        document.getElementById('userName').textContent = `Welcome, ${data.name}!`;
+    } catch (error) {
+        console.error('Error loading user profile:', error);
+    }
+}
+
+// UI Functions
+function showLoginScreen() {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'none';
+}
+
+function showMainApp() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+}
+
+function showTab(tabName) {
+    const signinForm = document.getElementById('signinForm');
+    const signupForm = document.getElementById('signupForm');
+    const tabs = document.querySelectorAll('.tab-btn');
+    
+    tabs.forEach(tab => tab.classList.remove('active'));
+    
+    if (tabName === 'signin') {
+        signinForm.style.display = 'block';
+        signupForm.style.display = 'none';
+        document.querySelector('.tab-btn:first-child').classList.add('active');
+    } else {
+        signinForm.style.display = 'none';
+        signupForm.style.display = 'block';
+        document.querySelector('.tab-btn:last-child').classList.add('active');
+    }
 }
 
 // Modal functions
@@ -43,7 +224,7 @@ function closeModal(modalId) {
 }
 
 // Team Member functions
-function handleAddMember(event) {
+async function handleAddMember(event) {
     event.preventDefault();
     
     const name = document.getElementById('memberName').value.trim();
@@ -51,45 +232,77 @@ function handleAddMember(event) {
     const role = document.getElementById('memberRole').value.trim();
     
     if (!name || !email || !role) {
-        alert('Please fill in all fields');
+        showNotification('Please fill in all fields', 'error');
         return;
     }
     
-    const newMember = {
-        id: Date.now().toString(),
-        name: name,
-        email: email,
-        role: role,
-        createdAt: new Date().toISOString()
-    };
-    
-    teamMembers.push(newMember);
-    saveTeamMembers();
-    renderTeamMembers();
-    closeModal('memberModal');
-    
-    showNotification('Team member added successfully!', 'success');
+    try {
+        const { data, error } = await supabase
+            .from('team_members')
+            .insert([
+                {
+                    name: name,
+                    email: email,
+                    role: role,
+                    created_by: currentUser.id
+                }
+            ])
+            .select();
+        
+        if (error) throw error;
+        
+        await loadTeamMembers();
+        closeModal('memberModal');
+        showNotification('Team member added successfully!', 'success');
+    } catch (error) {
+        showNotification(error.message, 'error');
+    }
 }
 
-function deleteMember(memberId) {
-    if (confirm('Are you sure you want to delete this team member?')) {
-        // Remove member from team
-        teamMembers = teamMembers.filter(member => member.id !== memberId);
+async function deleteMember(memberId) {
+    if (!confirm('Are you sure you want to delete this team member?')) {
+        return;
+    }
+    
+    try {
+        // Update tasks to unassigned
+        const { error: taskError } = await supabase
+            .from('tasks')
+            .update({ assignee_id: null, assignee_name: 'Unassigned' })
+            .eq('assignee_id', memberId);
         
-        // Reassign tasks to unassigned
-        tasks = tasks.map(task => {
-            if (task.assigneeId === memberId) {
-                return { ...task, assigneeId: null, assigneeName: 'Unassigned' };
-            }
-            return task;
-        });
+        if (taskError) throw taskError;
         
-        saveTeamMembers();
-        saveTasks();
-        renderTeamMembers();
-        renderTasks();
+        // Delete team member
+        const { error } = await supabase
+            .from('team_members')
+            .delete()
+            .eq('id', memberId);
         
+        if (error) throw error;
+        
+        await loadTeamMembers();
+        await loadTasks();
         showNotification('Team member deleted successfully!', 'success');
+    } catch (error) {
+        showNotification(error.message, 'error');
+    }
+}
+
+async function loadTeamMembers() {
+    try {
+        const { data, error } = await supabase
+            .from('team_members')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        teamMembers = data || [];
+        renderTeamMembers();
+    } catch (error) {
+        console.error('Error loading team members:', error);
+        showNotification('Error loading team members', 'error');
     }
 }
 
@@ -123,7 +336,7 @@ function renderTeamMembers() {
 }
 
 // Task functions
-function handleAddTask(event) {
+async function handleAddTask(event) {
     event.preventDefault();
     
     const title = document.getElementById('taskTitle').value.trim();
@@ -133,48 +346,89 @@ function handleAddTask(event) {
     const dueDate = document.getElementById('taskDueDate').value;
     
     if (!title || !description || !assigneeId || !priority || !dueDate) {
-        alert('Please fill in all fields');
+        showNotification('Please fill in all fields', 'error');
         return;
     }
     
     const assignee = teamMembers.find(member => member.id === assigneeId);
     
-    const newTask = {
-        id: Date.now().toString(),
-        title: title,
-        description: description,
-        assigneeId: assigneeId,
-        assigneeName: assignee ? assignee.name : 'Unassigned',
-        priority: priority,
-        dueDate: dueDate,
-        status: 'todo',
-        createdAt: new Date().toISOString()
-    };
-    
-    tasks.push(newTask);
-    saveTasks();
-    renderTasks();
-    closeModal('taskModal');
-    
-    showNotification('Task created successfully!', 'success');
-}
-
-function updateTaskStatus(taskId, newStatus) {
-    const task = tasks.find(t => t.id === taskId);
-    if (task) {
-        task.status = newStatus;
-        saveTasks();
-        renderTasks();
-        showNotification('Task status updated!', 'success');
+    try {
+        const { data, error } = await supabase
+            .from('tasks')
+            .insert([
+                {
+                    title: title,
+                    description: description,
+                    assignee_id: assigneeId,
+                    assignee_name: assignee ? assignee.name : 'Unassigned',
+                    priority: priority,
+                    due_date: dueDate,
+                    status: 'todo',
+                    created_by: currentUser.id
+                }
+            ])
+            .select();
+        
+        if (error) throw error;
+        
+        await loadTasks();
+        closeModal('taskModal');
+        showNotification('Task created successfully!', 'success');
+    } catch (error) {
+        showNotification(error.message, 'error');
     }
 }
 
-function deleteTask(taskId) {
-    if (confirm('Are you sure you want to delete this task?')) {
-        tasks = tasks.filter(task => task.id !== taskId);
-        saveTasks();
-        renderTasks();
+async function updateTaskStatus(taskId, newStatus) {
+    try {
+        const { error } = await supabase
+            .from('tasks')
+            .update({ status: newStatus })
+            .eq('id', taskId);
+        
+        if (error) throw error;
+        
+        await loadTasks();
+        showNotification('Task status updated!', 'success');
+    } catch (error) {
+        showNotification(error.message, 'error');
+    }
+}
+
+async function deleteTask(taskId) {
+    if (!confirm('Are you sure you want to delete this task?')) {
+        return;
+    }
+    
+    try {
+        const { error } = await supabase
+            .from('tasks')
+            .delete()
+            .eq('id', taskId);
+        
+        if (error) throw error;
+        
+        await loadTasks();
         showNotification('Task deleted successfully!', 'success');
+    } catch (error) {
+        showNotification(error.message, 'error');
+    }
+}
+
+async function loadTasks() {
+    try {
+        const { data, error } = await supabase
+            .from('tasks')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        tasks = data || [];
+        renderTasks();
+    } catch (error) {
+        console.error('Error loading tasks:', error);
+        showNotification('Error loading tasks', 'error');
     }
 }
 
@@ -211,8 +465,8 @@ function renderTaskColumn(columnId, taskList) {
             </div>
             <div class="task-description">${task.description}</div>
             <div class="task-meta">
-                <span class="task-assignee">${task.assigneeName}</span>
-                <span class="task-due-date">${formatDate(task.dueDate)}</span>
+                <span class="task-assignee">${task.assignee_name}</span>
+                <span class="task-due-date">${formatDate(task.due_date)}</span>
             </div>
             <div class="task-actions">
                 ${task.status !== 'completed' ? `
@@ -342,31 +596,21 @@ function formatDate(dateString) {
     }
 }
 
-function saveTeamMembers() {
-    localStorage.setItem('teamMembers', JSON.stringify(teamMembers));
-}
-
-function saveTasks() {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-}
-
 function showNotification(message, type = 'info') {
-    // Create notification element
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
     notification.innerHTML = `
         <div class="notification-content">
-            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i>
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
             <span>${message}</span>
         </div>
     `;
     
-    // Add styles
     notification.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
-        background: ${type === 'success' ? '#48bb78' : '#4299e1'};
+        background: ${type === 'success' ? '#48bb78' : type === 'error' ? '#e53e3e' : '#4299e1'};
         color: white;
         padding: 15px 20px;
         border-radius: 8px;
@@ -379,12 +623,10 @@ function showNotification(message, type = 'info') {
     
     document.body.appendChild(notification);
     
-    // Animate in
     setTimeout(() => {
         notification.style.transform = 'translateX(0)';
     }, 100);
     
-    // Remove after 3 seconds
     setTimeout(() => {
         notification.style.transform = 'translateX(100%)';
         setTimeout(() => {
@@ -394,8 +636,10 @@ function showNotification(message, type = 'info') {
 }
 
 // Export functions for global access
+window.showTab = showTab;
 window.openModal = openModal;
 window.closeModal = closeModal;
 window.deleteMember = deleteMember;
 window.deleteTask = deleteTask;
-window.moveTask = moveTask; 
+window.moveTask = moveTask;
+window.signOut = signOut; 
