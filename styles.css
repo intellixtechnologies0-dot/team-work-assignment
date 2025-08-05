@@ -833,6 +833,15 @@ form {
     background: #718096;
 }
 
+.dark-mode .btn-attach {
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+}
+
+.dark-mode .btn-attach:hover {
+    background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+}
+
 /* Work Proof styles */
 .form-help {
     color: #666;
@@ -860,6 +869,32 @@ form {
     color: #ff6b35;
     text-decoration: none;
     word-break: break-all;
+}
+
+/* Purple shade for attach option icon */
+.btn-attach {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-attach:hover {
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.btn-attach i {
+    color: white;
 }
 
 .work-proof-link:hover {
