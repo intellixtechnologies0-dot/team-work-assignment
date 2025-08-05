@@ -576,14 +576,14 @@ function renderTaskColumn(columnId, taskList) {
                             🚀 Start
                         </button>
                     ` : task.status === 'inProgress' ? `
-                        <button class="btn btn-small btn-primary" onclick="openWorkProofModal('${task.id}')">
-                            📎 ${hasProof ? 'Update Proof' : 'Add Proof'}
-                        </button>
-                        <button class="btn btn-small ${canComplete ? 'btn-primary' : 'btn-secondary complete-btn-disabled'}" 
-                                onclick="${canComplete ? `moveTask('${task.id}', 'completed')` : 'showNotification(\'Please add work proof before completing the task\', \'error\')'}"
-                                ${!canComplete ? 'disabled' : ''}>
-                            ✅ Complete
-                        </button>
+                                                         <button class="btn btn-small btn-primary" onclick="openWorkProofModal('${task.id}')">
+                                     📎 ${hasProof ? 'Update Proof' : 'Attach'}
+                                 </button>
+                                                         <button class="btn btn-small ${canComplete ? 'btn-primary' : 'btn-secondary complete-btn-disabled'}" 
+                                         onclick="${canComplete ? `moveTask('${task.id}', 'completed')` : 'showNotification(\'Please attach work proof before completing the task\', \'error\')'}"
+                                         ${!canComplete ? 'disabled' : ''}>
+                                     ✅ Completed
+                                 </button>
                     ` : task.status === 'completed' ? `
                         <span style="color: #28a745; font-weight: bold;">✅ Completed</span>
                     ` : ''}
