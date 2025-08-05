@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     setupEventListeners();
     checkAuthStatus();
-    initializeDarkMode();
 });
 
 function initializeApp() {
@@ -852,37 +851,10 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// Dark Mode Functions
-function initializeDarkMode() {
-    const isDarkMode = localStorage.getItem('darkMode') === 'true';
-    if (isDarkMode) {
-        document.body.classList.add('dark-mode');
-        updateDarkModeButton(true);
-    }
-}
-
-function toggleDarkMode() {
-    const isDarkMode = document.body.classList.toggle('dark-mode');
-    localStorage.setItem('darkMode', isDarkMode);
-    updateDarkModeButton(isDarkMode);
-}
-
-function updateDarkModeButton(isDarkMode) {
-    const button = document.getElementById('darkModeToggle');
-    if (button) {
-        if (isDarkMode) {
-            button.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
-        } else {
-            button.innerHTML = '<i class="fas fa-moon"></i> Dark Mode';
-        }
-    }
-}
-
 // Export functions for global access
 window.openModal = openModal;
 window.closeModal = closeModal;
 window.deleteMember = deleteMember;
 window.deleteTask = deleteTask;
 window.moveTask = moveTask;
-window.signOut = signOut;
-window.toggleDarkMode = toggleDarkMode; 
+window.signOut = signOut; 
