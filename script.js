@@ -12,6 +12,7 @@ let tasks = [];
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing app...');
     initializeApp();
     setupEventListeners();
     checkAuthStatus();
@@ -29,7 +30,6 @@ function initializeApp() {
 function setupEventListeners() {
     // Authentication forms
     document.getElementById('signinForm').addEventListener('submit', handleSignIn);
-    document.getElementById('signupForm').addEventListener('submit', handleSignUp);
     
     // App forms
     document.getElementById('memberForm').addEventListener('submit', handleAddMember);
@@ -46,15 +46,18 @@ function setupEventListeners() {
 // Authentication Functions
 async function checkAuthStatus() {
     try {
+        console.log('Checking auth status...');
         const { data: { user }, error } = await supabase.auth.getUser();
         
         if (user && !error) {
+            console.log('User is logged in:', user.email);
             currentUser = user;
             showMainApp();
             await loadUserProfile();
             await loadTeamMembers();
             await loadTasks();
         } else {
+            console.log('No user found, showing login screen');
             showLoginScreen();
         }
     } catch (error) {
@@ -94,61 +97,7 @@ async function handleSignIn(event) {
     }
 }
 
-async function handleSignUp(event) {
-    event.preventDefault();
-    
-    const name = document.getElementById('signupName').value.trim();
-    const email = document.getElementById('signupEmail').value.trim();
-    const password = document.getElementById('signupPassword').value.trim();
-    const role = document.getElementById('signupRole').value.trim();
-    
-    if (!name || !email || !password || !role) {
-        showNotification('Please fill in all fields', 'error');
-        return;
-    }
-    
-    if (password.length < 6) {
-        showNotification('Password must be at least 6 characters', 'error');
-        return;
-    }
-    
-    try {
-        const { data, error } = await supabase.auth.signUp({
-            email: email,
-            password: password,
-            options: {
-                data: {
-                    name: name,
-                    role: role
-                }
-            }
-        });
-        
-        if (error) throw error;
-        
-        // Create user profile
-        const { error: profileError } = await supabase
-            .from('profiles')
-            .insert([
-                {
-                    id: data.user.id,
-                    name: name,
-                    email: email,
-                    role: role
-                }
-            ]);
-        
-        if (profileError) throw profileError;
-        
-        currentUser = data.user;
-        showMainApp();
-        await loadUserProfile();
-        
-        showNotification('Account created successfully!', 'success');
-    } catch (error) {
-        showNotification(error.message, 'error');
-    }
-}
+
 
 async function signOut() {
     try {
@@ -183,6 +132,7 @@ async function loadUserProfile() {
 
 // UI Functions
 function showLoginScreen() {
+    console.log('Showing login screen...');
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('mainApp').style.display = 'none';
 }
@@ -192,23 +142,7 @@ function showMainApp() {
     document.getElementById('mainApp').style.display = 'block';
 }
 
-function showTab(tabName) {
-    const signinForm = document.getElementById('signinForm');
-    const signupForm = document.getElementById('signupForm');
-    const tabs = document.querySelectorAll('.tab-btn');
-    
-    tabs.forEach(tab => tab.classList.remove('active'));
-    
-    if (tabName === 'signin') {
-        signinForm.style.display = 'block';
-        signupForm.style.display = 'none';
-        document.querySelector('.tab-btn:first-child').classList.add('active');
-    } else {
-        signinForm.style.display = 'none';
-        signupForm.style.display = 'block';
-        document.querySelector('.tab-btn:last-child').classList.add('active');
-    }
-}
+
 
 // Modal functions
 function openModal(modalId) {
@@ -636,7 +570,6 @@ function showNotification(message, type = 'info') {
 }
 
 // Export functions for global access
-window.showTab = showTab;
 window.openModal = openModal;
 window.closeModal = closeModal;
 window.deleteMember = deleteMember;
