@@ -652,4 +652,58 @@ form {
 
 @keyframes spin {
     to { transform: rotate(360deg); }
+}
+
+/* Work Proof styles */
+.form-help {
+    color: #666;
+    font-size: 0.85em;
+    margin-top: 4px;
+    display: block;
+}
+
+.work-proof-badge {
+    display: inline-block;
+    background: #28a745;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    margin-left: 8px;
+}
+
+.work-proof-badge.pending {
+    background: #ffc107;
+    color: #333;
+}
+
+.work-proof-link {
+    color: #007bff;
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.work-proof-link:hover {
+    text-decoration: underline;
+}
+
+.work-proof-section {
+    margin-top: 10px;
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border-left: 3px solid #28a745;
+}
+
+.work-proof-section.pending {
+    border-left-color: #ffc107;
+}
+
+.complete-btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+}
+
+.complete-btn-disabled:hover {
+    background: #6c757d !important;
 } 

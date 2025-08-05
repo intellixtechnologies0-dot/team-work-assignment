@@ -34,6 +34,7 @@ function setupEventListeners() {
     // App forms
     document.getElementById('memberForm').addEventListener('submit', handleAddMember);
     document.getElementById('taskForm').addEventListener('submit', handleAddTask);
+    document.getElementById('workProofForm').addEventListener('submit', handleWorkProofUpload);
     
     // Modal close events
     window.addEventListener('click', function(event) {
@@ -546,31 +547,55 @@ function renderTaskColumn(columnId, taskList) {
         return;
     }
     
-    column.innerHTML = taskList.map(task => `
-        <div class="task-card ${task.priority}-priority" draggable="true" data-task-id="${task.id}">
-            <div class="task-header">
-                <div class="task-title">${task.title}</div>
-                <div class="task-priority priority-${task.priority}">${task.priority}</div>
-            </div>
-            <div class="task-description">${task.description}</div>
-            <div class="task-meta">
-                <span class="task-assignee">${task.assignee_name}</span>
-                <span class="task-due-date">${formatDate(task.due_date)}</span>
-            </div>
-            <div class="task-actions">
-                ${task.status !== 'completed' ? `
-                    <button class="btn btn-small btn-primary" onclick="moveTask('${task.id}', '${getNextStatus(task.status)}')">
-                        ${getNextStatusButtonText(task.status)}
-                    </button>
+    column.innerHTML = taskList.map(task => {
+        const hasProof = hasWorkProof(task);
+        const workProofHtml = hasProof ? formatWorkProof(task.work_proof) : '';
+        const isInProgress = task.status === 'inProgress';
+        const canComplete = task.status === 'inProgress' && hasProof;
+        
+        return `
+            <div class="task-card ${task.priority}-priority" draggable="true" data-task-id="${task.id}">
+                <div class="task-header">
+                    <div class="task-title">${task.title}</div>
+                    <div class="task-priority priority-${task.priority}">${task.priority}</div>
+                </div>
+                <div class="task-description">${task.description}</div>
+                <div class="task-meta">
+                    <span class="task-assignee">${task.assignee_name}</span>
+                    <span class="task-due-date">${formatDate(task.due_date)}</span>
+                    ${hasProof ? '<span class="work-proof-badge">✅ Proof Added</span>' : ''}
+                </div>
+                ${hasProof ? `
+                    <div class="work-proof-section">
+                        ${workProofHtml}
+                    </div>
                 ` : ''}
-                ${window.isAdmin ? `
-                    <button class="btn btn-small btn-danger" onclick="deleteTask('${task.id}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                ` : ''}
+                <div class="task-actions">
+                    ${task.status === 'todo' ? `
+                        <button class="btn btn-small btn-primary" onclick="moveTask('${task.id}', 'inProgress')">
+                            🚀 Start
+                        </button>
+                    ` : task.status === 'inProgress' ? `
+                        <button class="btn btn-small btn-primary" onclick="openWorkProofModal('${task.id}')">
+                            📎 ${hasProof ? 'Update Proof' : 'Add Proof'}
+                        </button>
+                        <button class="btn btn-small ${canComplete ? 'btn-primary' : 'btn-secondary complete-btn-disabled'}" 
+                                onclick="${canComplete ? `moveTask('${task.id}', 'completed')` : 'showNotification(\'Please add work proof before completing the task\', \'error\')'}"
+                                ${!canComplete ? 'disabled' : ''}>
+                            ✅ Complete
+                        </button>
+                    ` : task.status === 'completed' ? `
+                        <span style="color: #28a745; font-weight: bold;">✅ Completed</span>
+                    ` : ''}
+                    ${window.isAdmin ? `
+                        <button class="btn btn-small btn-danger" onclick="deleteTask('${task.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    ` : ''}
+                </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function moveTask(taskId, newStatus) {
@@ -605,6 +630,106 @@ function updateAssigneeOptions() {
         option.textContent = member.name;
         assigneeSelect.appendChild(option);
     });
+}
+
+// Work Proof Functions
+function openWorkProofModal(taskId) {
+    document.getElementById('workProofTaskId').value = taskId;
+    document.getElementById('workProofType').value = '';
+    document.getElementById('workProofLink').value = '';
+    document.getElementById('workProofScreenshot').value = '';
+    document.getElementById('workProofNotes').value = '';
+    document.getElementById('linkInputGroup').style.display = 'none';
+    document.getElementById('screenshotInputGroup').style.display = 'none';
+    openModal('workProofModal');
+}
+
+function toggleProofInput() {
+    const proofType = document.getElementById('workProofType').value;
+    const linkGroup = document.getElementById('linkInputGroup');
+    const screenshotGroup = document.getElementById('screenshotInputGroup');
+    
+    linkGroup.style.display = 'none';
+    screenshotGroup.style.display = 'none';
+    
+    if (proofType === 'link') {
+        linkGroup.style.display = 'block';
+    } else if (proofType === 'screenshot') {
+        screenshotGroup.style.display = 'block';
+    }
+}
+
+async function handleWorkProofUpload(event) {
+    event.preventDefault();
+    
+    const taskId = document.getElementById('workProofTaskId').value;
+    const proofType = document.getElementById('workProofType').value;
+    const proofLink = document.getElementById('workProofLink').value;
+    const proofScreenshot = document.getElementById('workProofScreenshot').value;
+    const notes = document.getElementById('workProofNotes').value;
+    
+    if (!proofType) {
+        showNotification('Please select a proof type', 'error');
+        return;
+    }
+    
+    let workProof = '';
+    if (proofType === 'link' && proofLink) {
+        workProof = `LINK: ${proofLink}`;
+    } else if (proofType === 'screenshot' && proofScreenshot) {
+        workProof = `SCREENSHOT: ${proofScreenshot}`;
+    } else {
+        showNotification('Please provide a valid link or screenshot URL', 'error');
+        return;
+    }
+    
+    if (notes) {
+        workProof += ` | NOTES: ${notes}`;
+    }
+    
+    try {
+        const { error } = await supabase
+            .from('tasks')
+            .update({ 
+                work_proof: workProof,
+                work_proof_updated_at: new Date().toISOString()
+            })
+            .eq('id', taskId);
+        
+        if (error) throw error;
+        
+        closeModal('workProofModal');
+        await loadTasks();
+        showNotification('Work proof uploaded successfully!', 'success');
+    } catch (error) {
+        showNotification('Failed to upload work proof: ' + error.message, 'error');
+    }
+}
+
+function hasWorkProof(task) {
+    return task.work_proof && task.work_proof.trim() !== '';
+}
+
+function formatWorkProof(workProof) {
+    if (!workProof) return '';
+    
+    const parts = workProof.split(' | ');
+    let result = '';
+    
+    parts.forEach(part => {
+        if (part.startsWith('LINK: ')) {
+            const link = part.replace('LINK: ', '');
+            result += `<div><strong>🔗 Work Link:</strong> <a href="${link}" target="_blank" class="work-proof-link">${link}</a></div>`;
+        } else if (part.startsWith('SCREENSHOT: ')) {
+            const screenshot = part.replace('SCREENSHOT: ', '');
+            result += `<div><strong>📸 Screenshot:</strong> <a href="${screenshot}" target="_blank" class="work-proof-link">${screenshot}</a></div>`;
+        } else if (part.startsWith('NOTES: ')) {
+            const notes = part.replace('NOTES: ', '');
+            result += `<div><strong>📝 Notes:</strong> ${notes}</div>`;
+        }
+    });
+    
+    return result;
 }
 
 // Drag and Drop functionality

@@ -170,6 +170,45 @@
                 </form>
             </div>
         </div>
+
+        <!-- Work Proof Upload Modal -->
+        <div id="workProofModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Upload Work Proof</h3>
+                    <span class="close" onclick="closeModal('workProofModal')">&times;</span>
+                </div>
+                <form id="workProofForm">
+                    <input type="hidden" id="workProofTaskId">
+                    <div class="form-group">
+                        <label for="workProofType">Proof Type:</label>
+                        <select id="workProofType" required onchange="toggleProofInput()">
+                            <option value="">Select proof type</option>
+                            <option value="link">Link (Google Drive, GitHub, etc.)</option>
+                            <option value="screenshot">Screenshot URL</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="linkInputGroup" style="display: none;">
+                        <label for="workProofLink">Work Link:</label>
+                        <input type="url" id="workProofLink" placeholder="https://drive.google.com/... or https://github.com/...">
+                        <small class="form-help">Paste a link to your work (Google Drive, GitHub, Figma, etc.)</small>
+                    </div>
+                    <div class="form-group" id="screenshotInputGroup" style="display: none;">
+                        <label for="workProofScreenshot">Screenshot URL:</label>
+                        <input type="url" id="workProofScreenshot" placeholder="https://imgur.com/... or https://i.imgur.com/...">
+                        <small class="form-help">Upload screenshot to Imgur or similar service and paste the URL</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="workProofNotes">Notes (Optional):</label>
+                        <textarea id="workProofNotes" rows="3" placeholder="Add any notes about your work progress..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('workProofModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Upload Proof</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
