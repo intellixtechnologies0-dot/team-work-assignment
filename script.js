@@ -179,13 +179,13 @@ async function loadUserProfile() {
                     console.error('Error creating profile:', createError);
                 }
                 
-                document.getElementById('userName').textContent = `Welcome, ${currentUser.email.split('@')[0]}!`;
+                document.getElementById('userName').textContent = currentUser.email.split('@')[0];
             } else {
-                document.getElementById('userName').textContent = `Welcome, ${data.name}!`;
+                document.getElementById('userName').textContent = data.name;
             }
         } catch (profileError) {
             console.error('Profile error:', profileError);
-            document.getElementById('userName').textContent = `Welcome, ${currentUser.email.split('@')[0]}!`;
+            document.getElementById('userName').textContent = currentUser.email.split('@')[0];
         }
         
         // Show/hide admin features based on role
