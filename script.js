@@ -457,18 +457,27 @@ function updateAssigneeCheckboxes() {
 
 async function updateTaskStatus(taskId, newStatus) {
     try {
+        // Get the current user's team member ID
+        const teamMemberId = await getCurrentUserTeamMemberId();
+        
+        if (!teamMemberId) {
+            showNotification('Unable to find your team member record', 'error');
+            return;
+        }
+        
         // Update the specific assignment status
         const { error } = await supabase
             .from('task_assignments')
             .update({ status: newStatus })
             .eq('task_id', taskId)
-            .eq('assignee_id', getCurrentUserTeamMemberId());
+            .eq('assignee_id', teamMemberId);
         
         if (error) throw error;
         
         await loadTasks();
         showNotification('Task status updated!', 'success');
     } catch (error) {
+        console.error('Error updating task status:', error);
         showNotification(error.message, 'error');
     }
 }
@@ -531,7 +540,7 @@ async function loadTasks() {
         if (error) throw error;
         
         tasks = data || [];
-        renderTasks();
+        await renderTasks();
     } catch (error) {
         console.error('Error loading tasks:', error);
         showNotification('Error loading tasks', 'error');
@@ -540,6 +549,7 @@ async function loadTasks() {
 
 async function getCurrentUserTeamMemberId() {
     try {
+        console.log('Getting team member ID for email:', currentUser.email);
         const { data, error } = await supabase
             .from('team_members')
             .select('id')
@@ -551,6 +561,7 @@ async function getCurrentUserTeamMemberId() {
             return null;
         }
         
+        console.log('Found team member ID:', data.id);
         return data.id;
     } catch (error) {
         console.error('Error getting team member ID:', error);
@@ -558,10 +569,16 @@ async function getCurrentUserTeamMemberId() {
     }
 }
 
-function renderTasks() {
+async function renderTasks() {
     const todoTasks = [];
     const inProgressTasks = [];
     const completedTasks = [];
+    
+    // Get current user's team member ID for filtering
+    let currentUserTeamMemberId = null;
+    if (!window.isAdmin) {
+        currentUserTeamMemberId = await getCurrentUserTeamMemberId();
+    }
     
     tasks.forEach(task => {
         if (!task.task_assignments || task.task_assignments.length === 0) {
@@ -573,7 +590,7 @@ function renderTasks() {
         const relevantAssignments = window.isAdmin 
             ? task.task_assignments 
             : task.task_assignments.filter(assignment => 
-                assignment.assignee_name === getCurrentUserDisplayName()
+                assignment.assignee_id === currentUserTeamMemberId
             );
         
         relevantAssignments.forEach(assignment => {
