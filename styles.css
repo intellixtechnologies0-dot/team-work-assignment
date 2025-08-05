@@ -200,6 +200,12 @@ body {
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
+/* Team Members Section with light orange background */
+.team-members-section {
+    background: linear-gradient(135deg, #fff5f0 0%, #ffe8d6 100%);
+    border: 1px solid #ffd4a3;
+}
+
 .section-header {
     display: flex;
     justify-content: space-between;
@@ -716,6 +722,11 @@ form {
 .dark-mode .section {
     background: #2d3748;
     border: 1px solid #4a5568;
+}
+
+.dark-mode .team-members-section {
+    background: linear-gradient(135deg, #3d2a1a 0%, #2d1f15 100%);
+    border: 1px solid #5a3d2a;
 }
 
 .dark-mode .task-card {
