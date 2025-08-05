@@ -124,7 +124,16 @@ async function loadUserProfile() {
         
         if (error) throw error;
         
+        // Check if user is admin
+        const isAdmin = currentUser.email === 'vrreddypc143@gmail.com';
+        
         document.getElementById('userName').textContent = `Welcome, ${data.name}!`;
+        
+        // Store admin status globally
+        window.isAdmin = isAdmin;
+        
+        // Show/hide admin features based on role
+        updateUIForUserRole(isAdmin);
     } catch (error) {
         console.error('Error loading user profile:', error);
     }
@@ -140,6 +149,21 @@ function showLoginScreen() {
 function showMainApp() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'block';
+}
+
+function updateUIForUserRole(isAdmin) {
+    const addMemberBtn = document.getElementById('addMemberBtn');
+    const createTaskBtn = document.getElementById('createTaskBtn');
+    
+    if (isAdmin) {
+        // Admin can see all features
+        if (addMemberBtn) addMemberBtn.style.display = 'inline-flex';
+        if (createTaskBtn) createTaskBtn.style.display = 'inline-flex';
+    } else {
+        // Regular users can only view their tasks
+        if (addMemberBtn) addMemberBtn.style.display = 'none';
+        if (createTaskBtn) createTaskBtn.style.display = 'none';
+    }
 }
 
 
@@ -160,6 +184,11 @@ function closeModal(modalId) {
 // Team Member functions
 async function handleAddMember(event) {
     event.preventDefault();
+    
+    if (!window.isAdmin) {
+        showNotification('Only administrators can add team members', 'error');
+        return;
+    }
     
     const name = document.getElementById('memberName').value.trim();
     const email = document.getElementById('memberEmail').value.trim();
@@ -194,6 +223,11 @@ async function handleAddMember(event) {
 }
 
 async function deleteMember(memberId) {
+    if (!window.isAdmin) {
+        showNotification('Only administrators can delete team members', 'error');
+        return;
+    }
+    
     if (!confirm('Are you sure you want to delete this team member?')) {
         return;
     }
@@ -225,6 +259,13 @@ async function deleteMember(memberId) {
 
 async function loadTeamMembers() {
     try {
+        // Only admin can see team members list
+        if (!window.isAdmin) {
+            teamMembers = [];
+            renderTeamMembers();
+            return;
+        }
+        
         const { data, error } = await supabase
             .from('team_members')
             .select('*')
@@ -242,6 +283,16 @@ async function loadTeamMembers() {
 
 function renderTeamMembers() {
     const membersGrid = document.getElementById('membersGrid');
+    
+    if (!window.isAdmin) {
+        membersGrid.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-user-friends"></i>
+                <p>Team member management is only available to administrators.</p>
+            </div>
+        `;
+        return;
+    }
     
     if (teamMembers.length === 0) {
         membersGrid.innerHTML = `
@@ -272,6 +323,11 @@ function renderTeamMembers() {
 // Task functions
 async function handleAddTask(event) {
     event.preventDefault();
+    
+    if (!window.isAdmin) {
+        showNotification('Only administrators can create tasks', 'error');
+        return;
+    }
     
     const title = document.getElementById('taskTitle').value.trim();
     const description = document.getElementById('taskDescription').value.trim();
@@ -330,6 +386,11 @@ async function updateTaskStatus(taskId, newStatus) {
 }
 
 async function deleteTask(taskId) {
+    if (!window.isAdmin) {
+        showNotification('Only administrators can delete tasks', 'error');
+        return;
+    }
+    
     if (!confirm('Are you sure you want to delete this task?')) {
         return;
     }
@@ -351,10 +412,17 @@ async function deleteTask(taskId) {
 
 async function loadTasks() {
     try {
-        const { data, error } = await supabase
+        let query = supabase
             .from('tasks')
             .select('*')
             .order('created_at', { ascending: false });
+        
+        // If not admin, only show tasks assigned to current user
+        if (!window.isAdmin) {
+            query = query.eq('assignee_id', currentUser.id);
+        }
+        
+        const { data, error } = await query;
         
         if (error) throw error;
         
@@ -408,9 +476,11 @@ function renderTaskColumn(columnId, taskList) {
                         ${getNextStatusButtonText(task.status)}
                     </button>
                 ` : ''}
-                <button class="btn btn-small btn-danger" onclick="deleteTask('${task.id}')">
-                    <i class="fas fa-trash"></i>
-                </button>
+                ${window.isAdmin ? `
+                    <button class="btn btn-small btn-danger" onclick="deleteTask('${task.id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                ` : ''}
             </div>
         </div>
     `).join('');
