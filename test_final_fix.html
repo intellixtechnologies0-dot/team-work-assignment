@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final RLS Fix Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .test-section { border: 1px solid #ddd; padding: 15px; margin: 15px 0; border-radius: 5px; }
+        .success { background: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+        .warning { background: #fff3cd; border-color: #ffeaa7; color: #856404; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        button.success { background: #28a745; }
+        button.success:hover { background: #218838; }
+        button.danger { background: #dc3545; }
+        button.danger:hover { background: #c82333; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ccc; border-radius: 4px; width: 200px; }
+        .task-card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; background: #f9f9f9; }
+        .status-todo { border-left: 4px solid #ffc107; }
+        .status-inProgress { border-left: 4px solid #17a2b8; }
+        .status-completed { border-left: 4px solid #28a745; }
+    </style>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Final RLS Fix Test</h1>
+        <p>This page tests if the Row Level Security fix allows team members to update their task status.</p>
+        
+        <div id="loginSection" class="test-section">
+            <h2>Step 1: Sign In</h2>
+            <form id="loginForm">
+                <input type="email" id="email" placeholder="Email" required><br>
+                <input type="password" id="password" placeholder="Password" required><br>
+                <button type="submit">Sign In</button>
+            </form>
+        </div>
+        
+        <div id="testSection" style="display: none;">
+            <div id="userInfo" class="test-section info"></div>
+            <div id="taskList" class="test-section"></div>
+            <div id="results" class="test-section"></div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://cneoifzzhyvfpxvhsxgp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuZW9pZnp6aHl2ZnB4dmhzeGdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzOTU4MjksImV4cCI6MjA2OTk3MTgyOX0.oI7M_AqPADdAU_gdtn6r20zyotZQ2N1caiQkCmZXC_I';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let currentUser = null;
+        let tasks = [];
+        
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                console.log('🔍 Signing in...');
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) throw error;
+                
+                currentUser = data.user;
+                console.log('✅ Signed in:', currentUser.email);
+                
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('testSection').style.display = 'block';
+                
+                document.getElementById('userInfo').innerHTML = `
+                    <h3>👤 User Information</h3>
+                    <p><strong>Email:</strong> ${currentUser.email}</p>
+                    <p><strong>User ID:</strong> ${currentUser.id}</p>
+                    <p><strong>Role:</strong> ${currentUser.email === 'vrreddypc143@gmail.com' ? 'Admin' : 'Team Member'}</p>
+                `;
+                
+                await loadTasks();
+                
+            } catch (error) {
+                console.error('❌ Sign in error:', error);
+                alert('Sign in failed: ' + error.message);
+            }
+        });
+        
+        async function loadTasks() {
+            try {
+                console.log('🔍 Loading tasks...');
+                
+                let query = supabase
+                    .from('tasks')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                // If not admin, filter by team member
+                if (currentUser.email !== 'vrreddypc143@gmail.com') {
+                    console.log('🔍 Not admin, filtering tasks...');
+                    
+                    const { data: memberData, error: memberError } = await supabase
+                        .from('team_members')
+                        .select('id')
+                        .eq('email', currentUser.email)
+                        .single();
+                    
+                    if (memberError) {
+                        console.log('❌ No team member record found');
+                        tasks = [];
+                        renderTasks();
+                        return;
+                    }
+                    
+                    console.log('✅ Found team member ID:', memberData.id);
+                    query = query.eq('assignee_id', memberData.id);
+                }
+                
+                const { data, error } = await query;
+                
+                if (error) {
+                    console.error('❌ Database error:', error);
+                    throw error;
+                }
+                
+                console.log('✅ Tasks loaded:', data?.length || 0);
+                tasks = data || [];
+                renderTasks();
+                
+            } catch (error) {
+                console.error('❌ Error loading tasks:', error);
+                document.getElementById('results').innerHTML = `
+                    <div class="error">
+                        <h3>❌ Error Loading Tasks</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p><strong>Code:</strong> ${error.code}</p>
+                        <p><strong>Details:</strong> ${error.details}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function renderTasks() {
+            const taskList = document.getElementById('taskList');
+            
+            if (tasks.length === 0) {
+                taskList.innerHTML = `
+                    <h3>📋 Tasks</h3>
+                    <div class="warning">
+                        <p>No tasks found for your account.</p>
+                        <p>If you're a team member, make sure you have tasks assigned to you.</p>
+                        <p>If you're an admin, you should see all tasks.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            taskList.innerHTML = `
+                <h3>📋 Your Tasks (${tasks.length})</h3>
+                ${tasks.map(task => `
+                    <div class="task-card status-${task.status}">
+                        <h4>${task.title}</h4>
+                        <p><strong>Task ID:</strong> ${task.id}</p>
+                        <p><strong>Status:</strong> <span id="status-${task.id}" style="font-weight: bold; color: ${
+                            task.status === 'todo' ? '#ffc107' : 
+                            task.status === 'inProgress' ? '#17a2b8' : '#28a745'
+                        };">${task.status}</span></p>
+                        <p><strong>Assignee ID:</strong> ${task.assignee_id}</p>
+                        <p><strong>Description:</strong> ${task.description}</p>
+                        <p><strong>Priority:</strong> ${task.priority}</p>
+                        <p><strong>Due Date:</strong> ${task.due_date}</p>
+                        
+                        <div style="margin-top: 15px;">
+                            ${task.status === 'todo' ? `
+                                <button onclick="updateTask('${task.id}', 'inProgress')" class="success">
+                                    🚀 Start Task
+                                </button>
+                            ` : task.status === 'inProgress' ? `
+                                <button onclick="updateTask('${task.id}', 'completed')" class="success">
+                                    ✅ Complete Task
+                                </button>
+                                <button onclick="updateTask('${task.id}', 'todo')" class="danger">
+                                    ↩️ Move Back to Todo
+                                </button>
+                            ` : `
+                                <span style="color: #28a745; font-weight: bold; font-size: 18px;">✅ Task Completed!</span>
+                                <br><button onclick="updateTask('${task.id}', 'inProgress')" class="danger">
+                                    ↩️ Move Back to In Progress
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        }
+        
+        async function updateTask(taskId, newStatus) {
+            try {
+                console.log('🔍 Updating task:', taskId, 'to', newStatus);
+                
+                // First, let's check if we can read this task
+                const { data: readData, error: readError } = await supabase
+                    .from('tasks')
+                    .select('*')
+                    .eq('id', taskId)
+                    .single();
+                
+                if (readError) {
+                    throw new Error(`Cannot read task: ${readError.message}`);
+                }
+                
+                console.log('✅ Can read task:', readData);
+                
+                // Now try to update
+                const { data, error } = await supabase
+                    .from('tasks')
+                    .update({ status: newStatus })
+                    .eq('id', taskId)
+                    .select();
+                
+                if (error) {
+                    console.error('❌ Update error:', error);
+                    throw error;
+                }
+                
+                console.log('✅ Update successful:', data);
+                
+                // Update display
+                document.getElementById(`status-${taskId}`).textContent = newStatus;
+                
+                // Reload tasks to refresh the display
+                await loadTasks();
+                
+                document.getElementById('results').innerHTML = `
+                    <div class="success">
+                        <h3>✅ Success!</h3>
+                        <p>Task status updated to "${newStatus}"</p>
+                        <p><strong>Task ID:</strong> ${taskId}</p>
+                        <p><strong>Task Title:</strong> ${readData.title}</p>
+                        <p><strong>Updated by:</strong> ${currentUser.email}</p>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('❌ Error updating task:', error);
+                document.getElementById('results').innerHTML = `
+                    <div class="error">
+                        <h3>❌ Update Failed</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p><strong>Code:</strong> ${error.code}</p>
+                        <p><strong>Details:</strong> ${error.details}</p>
+                        <p><strong>Task ID:</strong> ${taskId}</p>
+                        <p><strong>User:</strong> ${currentUser.email}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html> 
