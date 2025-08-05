@@ -135,74 +135,100 @@ body {
 
 /* Main App Styles */
 .main-app {
+    display: flex;
     min-height: 100vh;
 }
 
-/* Header Styles */
-.app-header {
+/* Sidebar Styles */
+.sidebar {
+    width: 280px;
     background: white;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    padding: 20px 0;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-.header-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 30px;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.1);
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    z-index: 1000;
 }
 
-.brand-section {
+.sidebar-header {
+    padding: 30px 25px;
+    border-bottom: 1px solid #e2e8f0;
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 15px;
 }
 
-.brand-section .brand-logo {
-    width: 60px;
-    height: 60px;
+.sidebar-header .brand-logo {
+    width: 50px;
+    height: 50px;
     margin: 0;
 }
 
-.brand-section .brand-logo i {
-    font-size: 1.5rem;
+.sidebar-header .brand-logo i {
+    font-size: 1.3rem;
 }
 
-.brand-text h1 {
+.sidebar-header .brand-text h1 {
     color: #2d3748;
-    font-size: 1.8rem;
+    font-size: 1.4rem;
     margin-bottom: 2px;
     font-weight: 700;
 }
 
-.brand-text h2 {
+.sidebar-header .brand-text p {
     color: #ff6b35;
-    font-size: 1.1rem;
-    margin-bottom: 2px;
+    font-size: 0.9rem;
     font-weight: 600;
+    margin: 0;
 }
 
-.brand-text h3 {
+.sidebar-nav {
+    flex: 1;
+    padding: 20px 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 25px;
     color: #718096;
-    font-size: 0.9rem;
-    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+}
+
+.nav-item:hover {
+    background: #f8fafc;
+    color: #ff6b35;
+}
+
+.nav-item.active {
+    background: linear-gradient(135deg, #fff5f0 0%, #ffe8d6 100%);
+    color: #ff6b35;
+    border-left-color: #ff6b35;
+}
+
+.nav-item i {
+    font-size: 1.2rem;
+    width: 20px;
+}
+
+.nav-item span {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.sidebar-footer {
+    padding: 20px 25px;
+    border-top: 1px solid #e2e8f0;
 }
 
 .user-info {
     display: flex;
     align-items: center;
-    gap: 15px;
-    background: #f8fafc;
-    padding: 12px 20px;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
+    gap: 12px;
 }
 
 .user-avatar {
@@ -217,10 +243,11 @@ body {
 
 .user-avatar i {
     color: white;
-    font-size: 1.1rem;
+    font-size: 1rem;
 }
 
 .user-details {
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 5px;
@@ -232,90 +259,44 @@ body {
     font-size: 0.9rem;
 }
 
+.btn-signout {
+    background: none;
+    border: none;
+    color: #a0aec0;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 5px 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.3s ease;
+}
+
+.btn-signout:hover {
+    color: #ff6b35;
+}
+
 /* Main Content */
 .main-content {
-    padding: 40px 0;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 30px;
-}
-
-/* Dashboard Overview */
-.dashboard-overview {
-    margin-bottom: 40px;
-}
-
-.overview-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 25px;
-}
-
-.overview-card {
-    background: white;
-    border-radius: 16px;
+    flex: 1;
+    margin-left: 280px;
     padding: 30px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-    border: 1px solid #e2e8f0;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 20px;
+    background: #f8fafc;
+    min-height: 100vh;
 }
 
-.overview-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0,0,0,0.12);
-}
-
-.card-icon {
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.card-icon i {
-    color: white;
-    font-size: 1.5rem;
-}
-
-.card-content h3 {
-    color: #718096;
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.card-content p {
-    color: #2d3748;
-    font-size: 2rem;
-    font-weight: 700;
-    margin: 0;
-}
-
-/* Content Sections */
 .content-section {
-    background: white;
-    border-radius: 20px;
-    padding: 40px;
-    margin-bottom: 30px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-    border: 1px solid #e2e8f0;
+    display: none;
+    animation: fadeIn 0.3s ease;
 }
 
-.team-members-section {
-    background: linear-gradient(135deg, #fff5f0 0%, #ffe8d6 100%);
-    border: 1px solid #ffd4a3;
+.content-section.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .section-header {
@@ -327,21 +308,117 @@ body {
     gap: 20px;
 }
 
-.section-title {
+.section-header h2 {
+    color: #2d3748;
+    font-size: 1.8rem;
+    font-weight: 700;
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-.section-title i {
+.section-header h2 i {
     color: #ff6b35;
+}
+
+/* Dashboard Stats */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-icon i {
+    color: white;
     font-size: 1.5rem;
 }
 
-.section-title h2 {
+.stat-content h3 {
+    color: #718096;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-content p {
     color: #2d3748;
-    font-size: 1.8rem;
+    font-size: 2rem;
     font-weight: 700;
+    margin: 0;
+}
+
+/* Quick Actions */
+.quick-actions {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    border: 1px solid #e2e8f0;
+}
+
+.quick-actions h3 {
+    color: #2d3748;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    color: white;
+    border: none;
+    padding: 15px 25px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
 }
 
 /* Buttons */
@@ -379,17 +456,13 @@ body {
     transform: translateY(-1px);
 }
 
-.btn-outline {
-    background: transparent;
-    color: #ff6b35;
-    border: 2px solid #ff6b35;
-    padding: 8px 16px;
-    font-size: 0.8rem;
+.btn-danger {
+    background: #e53e3e;
+    color: white;
 }
 
-.btn-outline:hover {
-    background: #ff6b35;
-    color: white;
+.btn-danger:hover {
+    background: #c53030;
 }
 
 /* Team Members Grid */
@@ -437,15 +510,6 @@ body {
     font-size: 0.8rem;
 }
 
-.btn-danger {
-    background: #e53e3e;
-    color: white;
-}
-
-.btn-danger:hover {
-    background: #c53030;
-}
-
 /* Tasks Container */
 .tasks-container {
     overflow-x: auto;
@@ -459,10 +523,11 @@ body {
 }
 
 .task-column {
-    background: #f8fafc;
+    background: white;
     border-radius: 16px;
     padding: 25px;
     border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
 .column-header {
@@ -501,7 +566,7 @@ body {
 }
 
 .task-card {
-    background: white;
+    background: #f8fafc;
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 15px;
@@ -826,46 +891,34 @@ form {
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+    .sidebar {
+        width: 250px;
+    }
+    
+    .main-content {
+        margin-left: 250px;
+    }
+}
+
 @media (max-width: 768px) {
-    .container {
-        padding: 0 20px;
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
     }
     
-    .header-content {
-        padding: 0 20px;
-        flex-direction: column;
-        text-align: center;
+    .sidebar.open {
+        transform: translateX(0);
     }
     
-    .brand-section {
-        flex-direction: column;
-        gap: 15px;
+    .main-content {
+        margin-left: 0;
+        padding: 20px;
     }
     
-    .brand-text h1 {
-        font-size: 1.5rem;
-    }
-    
-    .brand-text h2 {
-        font-size: 1rem;
-    }
-    
-    .brand-text h3 {
-        font-size: 0.8rem;
-    }
-    
-    .overview-cards {
+    .stats-grid {
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 20px;
-    }
-    
-    .content-section {
-        padding: 25px;
-    }
-    
-    .section-header {
-        flex-direction: column;
-        align-items: stretch;
     }
     
     .task-columns {
@@ -890,50 +943,36 @@ form {
         grid-template-columns: 1fr;
     }
     
-    .login-container {
-        padding: 40px 30px;
+    .action-buttons {
+        flex-direction: column;
     }
 }
 
 @media (max-width: 480px) {
-    .brand-text h1 {
-        font-size: 1.3rem;
+    .login-container {
+        padding: 40px 30px;
     }
     
-    .brand-text h2 {
-        font-size: 0.9rem;
+    .main-content {
+        padding: 15px;
     }
     
-    .brand-text h3 {
-        font-size: 0.7rem;
-    }
-    
-    .content-section {
+    .stat-card {
         padding: 20px;
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .stat-icon i {
+        font-size: 1.2rem;
     }
     
     .btn {
         padding: 10px 20px;
         font-size: 0.8rem;
-    }
-    
-    .user-info {
-        flex-direction: column;
-        gap: 10px;
-        text-align: center;
-    }
-    
-    .overview-card {
-        padding: 20px;
-    }
-    
-    .card-icon {
-        width: 50px;
-        height: 50px;
-    }
-    
-    .card-icon i {
-        font-size: 1.2rem;
     }
 }
 

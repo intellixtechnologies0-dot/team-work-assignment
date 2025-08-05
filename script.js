@@ -36,11 +36,41 @@ function setupEventListeners() {
     document.getElementById('taskForm').addEventListener('submit', handleAddTask);
     document.getElementById('workProofForm').addEventListener('submit', handleWorkProofUpload);
     
+    // Navigation
+    setupNavigation();
+    
     // Modal close events
     window.addEventListener('click', function(event) {
         if (event.target.classList.contains('modal')) {
             event.target.style.display = 'none';
         }
+    });
+}
+
+function setupNavigation() {
+    const navItems = document.querySelectorAll('.nav-item');
+    
+    navItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Remove active class from all nav items
+            navItems.forEach(nav => nav.classList.remove('active'));
+            
+            // Add active class to clicked item
+            this.classList.add('active');
+            
+            // Hide all sections
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => section.classList.remove('active'));
+            
+            // Show target section
+            const targetSection = this.getAttribute('data-section');
+            const targetElement = document.getElementById(targetSection);
+            if (targetElement) {
+                targetElement.classList.add('active');
+            }
+        });
     });
 }
 
@@ -174,38 +204,43 @@ function showLoginScreen() {
 
 function showMainApp() {
     document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('mainApp').style.display = 'block';
+    document.getElementById('mainApp').style.display = 'flex';
 }
 
 function updateUIForUserRole(isAdmin) {
     console.log('Updating UI for user role. Is admin:', isAdmin);
     
-    const addMemberBtn = document.getElementById('addMemberBtn');
-    const createTaskBtn = document.getElementById('createTaskBtn');
-    
-    console.log('Add member button found:', !!addMemberBtn);
-    console.log('Create task button found:', !!createTaskBtn);
+    const addMemberBtns = document.querySelectorAll('#addMemberBtn, #addMemberBtn2');
+    const createTaskBtns = document.querySelectorAll('#createTaskBtn, #createTaskBtn2');
     
     if (isAdmin) {
         // Admin can see all features
-        if (addMemberBtn) {
-            addMemberBtn.style.display = 'inline-flex';
-            console.log('Showing add member button');
-        }
-        if (createTaskBtn) {
-            createTaskBtn.style.display = 'inline-flex';
-            console.log('Showing create task button');
-        }
+        addMemberBtns.forEach(btn => {
+            if (btn) {
+                btn.style.display = 'inline-flex';
+                console.log('Showing add member button');
+            }
+        });
+        createTaskBtns.forEach(btn => {
+            if (btn) {
+                btn.style.display = 'inline-flex';
+                console.log('Showing create task button');
+            }
+        });
     } else {
         // Regular users can only view their tasks
-        if (addMemberBtn) {
-            addMemberBtn.style.display = 'none';
-            console.log('Hiding add member button');
-        }
-        if (createTaskBtn) {
-            createTaskBtn.style.display = 'none';
-            console.log('Hiding create task button');
-        }
+        addMemberBtns.forEach(btn => {
+            if (btn) {
+                btn.style.display = 'none';
+                console.log('Hiding add member button');
+            }
+        });
+        createTaskBtns.forEach(btn => {
+            if (btn) {
+                btn.style.display = 'none';
+                console.log('Hiding create task button');
+            }
+        });
     }
 }
 
@@ -310,6 +345,7 @@ async function loadTeamMembers() {
         
         teamMembers = data || [];
         renderTeamMembers();
+        updateDashboardCounts();
     } catch (error) {
         console.error('Error loading team members:', error);
         showNotification('Error loading team members', 'error');
@@ -496,6 +532,7 @@ async function loadTasks() {
         console.log('📋 Tasks:', data);
         tasks = data || [];
         renderTasks();
+        updateDashboardCounts();
     } catch (error) {
         console.error('❌ Error loading tasks:', error);
         console.error('❌ Error details:', {
@@ -616,6 +653,52 @@ function updateAssigneeOptions() {
         option.textContent = member.name;
         assigneeSelect.appendChild(option);
     });
+}
+
+// Dashboard Functions
+function updateDashboardCounts() {
+    // Update member count
+    const memberCountElement = document.getElementById('memberCount');
+    if (memberCountElement) {
+        memberCountElement.textContent = teamMembers.length;
+    }
+    
+    // Update task counts
+    const taskCountElement = document.getElementById('taskCount');
+    const inProgressCountElement = document.getElementById('inProgressCount');
+    const completedCountElement = document.getElementById('completedCount');
+    const todoCountElement = document.getElementById('todoCount');
+    const inProgressColumnCountElement = document.getElementById('inProgressColumnCount');
+    const completedColumnCountElement = document.getElementById('completedColumnCount');
+    
+    if (taskCountElement) {
+        taskCountElement.textContent = tasks.length;
+    }
+    
+    if (inProgressCountElement) {
+        const inProgressCount = tasks.filter(task => task.status === 'inProgress').length;
+        inProgressCountElement.textContent = inProgressCount;
+    }
+    
+    if (completedCountElement) {
+        const completedCount = tasks.filter(task => task.status === 'completed').length;
+        completedCountElement.textContent = completedCount;
+    }
+    
+    if (todoCountElement) {
+        const todoCount = tasks.filter(task => task.status === 'todo').length;
+        todoCountElement.textContent = todoCount;
+    }
+    
+    if (inProgressColumnCountElement) {
+        const inProgressCount = tasks.filter(task => task.status === 'inProgress').length;
+        inProgressColumnCountElement.textContent = inProgressCount;
+    }
+    
+    if (completedColumnCountElement) {
+        const completedCount = tasks.filter(task => task.status === 'completed').length;
+        completedColumnCountElement.textContent = completedCount;
+    }
 }
 
 // Work Proof Functions
@@ -797,8 +880,6 @@ function formatDate(dateString) {
         return date.toLocaleDateString();
     }
 }
-
-
 
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
