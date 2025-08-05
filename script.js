@@ -416,17 +416,27 @@ async function handleAddTask(event) {
 
 async function updateTaskStatus(taskId, newStatus) {
     try {
-        const { error } = await supabase
+        console.log('🔄 Updating task status:', taskId, 'to', newStatus);
+        
+        const { data, error } = await supabase
             .from('tasks')
             .update({ status: newStatus })
-            .eq('id', taskId);
+            .eq('id', taskId)
+            .select();
         
-        if (error) throw error;
+        if (error) {
+            console.error('❌ Error updating task status:', error);
+            throw error;
+        }
         
+        console.log('✅ Task status updated successfully:', data);
+        
+        // Reload tasks to refresh the display
         await loadTasks();
         showNotification('Task status updated!', 'success');
     } catch (error) {
-        showNotification(error.message, 'error');
+        console.error('❌ Failed to update task status:', error);
+        showNotification('Failed to update task status: ' + error.message, 'error');
     }
 }
 
@@ -457,6 +467,7 @@ async function deleteTask(taskId) {
 
 async function loadTasks() {
     try {
+        console.log('🔄 Loading tasks...');
         let query = supabase
             .from('tasks')
             .select('*')
@@ -464,6 +475,7 @@ async function loadTasks() {
         
         // If not admin, only show tasks assigned to current user
         if (!window.isAdmin) {
+            console.log('👤 Not admin, filtering tasks for user:', currentUser.email);
             // For team members, we need to find tasks assigned to them by email
             // First, let's get the team member record for the current user
             const { data: memberData, error: memberError } = await supabase
@@ -473,25 +485,39 @@ async function loadTasks() {
                 .single();
             
             if (memberError) {
-                console.log('No team member record found for:', currentUser.email);
+                console.log('❌ No team member record found for:', currentUser.email);
+                console.log('❌ Member error:', memberError);
                 tasks = [];
                 renderTasks();
                 return;
             }
             
+            console.log('✅ Found team member ID:', memberData.id);
             // Now filter tasks by the team member ID
             query = query.eq('assignee_id', memberData.id);
         }
         
+        console.log('🔄 Executing query...');
         const { data, error } = await query;
         
-        if (error) throw error;
+        if (error) {
+            console.error('❌ Database error:', error);
+            throw error;
+        }
         
+        console.log('✅ Tasks loaded successfully:', data?.length || 0);
+        console.log('📋 Tasks:', data);
         tasks = data || [];
         renderTasks();
     } catch (error) {
-        console.error('Error loading tasks:', error);
-        showNotification('Error loading tasks', 'error');
+        console.error('❌ Error loading tasks:', error);
+        console.error('❌ Error details:', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+        });
+        showNotification('Error loading tasks: ' + error.message, 'error');
     }
 }
 

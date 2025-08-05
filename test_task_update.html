@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Update Test</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Task Update Test</h1>
+        <p>This page tests if team members can update task status</p>
+        
+        <div id="loginSection">
+            <h2>Step 1: Sign In</h2>
+            <form id="testLoginForm">
+                <input type="email" id="testEmail" placeholder="Email" required>
+                <input type="password" id="testPassword" placeholder="Password" required>
+                <button type="submit">Sign In</button>
+            </form>
+        </div>
+        
+        <div id="testSection" style="display: none;">
+            <h2>Step 2: Test Task Updates</h2>
+            <div id="userInfo"></div>
+            <div id="tasksList"></div>
+            <div id="testResults"></div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://cneoifzzhyvfpxvhsxgp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuZW9pZnp6aHl2ZnB4dmhzeGdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzOTU4MjksImV4cCI6MjA2OTk3MTgyOX0.oI7M_AqPADdAU_gdtn6r20zyotZQ2N1caiQkCmZXC_I';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let currentUser = null;
+        let tasks = [];
+        
+        document.getElementById('testLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+            
+            try {
+                console.log('🔍 TEST: Attempting sign in...');
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) throw error;
+                
+                currentUser = data.user;
+                console.log('🔍 TEST: Sign in successful:', currentUser.email);
+                
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('testSection').style.display = 'block';
+                
+                document.getElementById('userInfo').innerHTML = `
+                    <p><strong>Logged in as:</strong> ${currentUser.email}</p>
+                    <p><strong>Is Admin:</strong> ${currentUser.email === 'vrreddypc143@gmail.com' ? 'Yes' : 'No'}</p>
+                `;
+                
+                await loadTasksForTest();
+                
+            } catch (error) {
+                console.error('🔍 TEST: Sign in error:', error);
+                alert('Sign in failed: ' + error.message);
+            }
+        });
+        
+        async function loadTasksForTest() {
+            try {
+                console.log('🔍 TEST: Loading tasks...');
+                
+                let query = supabase
+                    .from('tasks')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                // If not admin, filter by team member
+                if (currentUser.email !== 'vrreddypc143@gmail.com') {
+                    console.log('🔍 TEST: Not admin, filtering tasks...');
+                    
+                    const { data: memberData, error: memberError } = await supabase
+                        .from('team_members')
+                        .select('id')
+                        .eq('email', currentUser.email)
+                        .single();
+                    
+                    if (memberError) {
+                        console.log('🔍 TEST: No team member record found');
+                        tasks = [];
+                        renderTasksForTest();
+                        return;
+                    }
+                    
+                    console.log('🔍 TEST: Found team member ID:', memberData.id);
+                    query = query.eq('assignee_id', memberData.id);
+                }
+                
+                const { data, error } = await query;
+                
+                if (error) {
+                    console.error('🔍 TEST: Database error:', error);
+                    throw error;
+                }
+                
+                console.log('🔍 TEST: Tasks loaded:', data?.length || 0);
+                tasks = data || [];
+                renderTasksForTest();
+                
+            } catch (error) {
+                console.error('🔍 TEST: Error loading tasks:', error);
+                document.getElementById('testResults').innerHTML = `
+                    <div style="color: red; padding: 10px; border: 1px solid red;">
+                        <strong>Error loading tasks:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        function renderTasksForTest() {
+            const tasksList = document.getElementById('tasksList');
+            
+            if (tasks.length === 0) {
+                tasksList.innerHTML = '<p>No tasks found.</p>';
+                return;
+            }
+            
+            tasksList.innerHTML = `
+                <h3>Your Tasks (${tasks.length})</h3>
+                ${tasks.map(task => `
+                    <div style="border: 1px solid #ccc; margin: 10px 0; padding: 15px; border-radius: 5px;">
+                        <h4>${task.title}</h4>
+                        <p><strong>Status:</strong> <span id="status-${task.id}">${task.status}</span></p>
+                        <p><strong>Description:</strong> ${task.description}</p>
+                        <p><strong>Priority:</strong> ${task.priority}</p>
+                        <p><strong>Due Date:</strong> ${task.due_date}</p>
+                        
+                        <div style="margin-top: 10px;">
+                            ${task.status === 'todo' ? `
+                                <button onclick="testUpdateStatus('${task.id}', 'inProgress')" style="background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">
+                                    🚀 Start Task
+                                </button>
+                            ` : task.status === 'inProgress' ? `
+                                <button onclick="testUpdateStatus('${task.id}', 'completed')" style="background: #28a745; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">
+                                    ✅ Complete Task
+                                </button>
+                            ` : `
+                                <span style="color: #28a745; font-weight: bold;">✅ Completed</span>
+                            `}
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        }
+        
+        async function testUpdateStatus(taskId, newStatus) {
+            try {
+                console.log('🔍 TEST: Updating task status:', taskId, 'to', newStatus);
+                
+                const { error } = await supabase
+                    .from('tasks')
+                    .update({ status: newStatus })
+                    .eq('id', taskId);
+                
+                if (error) {
+                    console.error('🔍 TEST: Update error:', error);
+                    throw error;
+                }
+                
+                console.log('🔍 TEST: Status updated successfully');
+                
+                // Update the display immediately
+                document.getElementById(`status-${taskId}`).textContent = newStatus;
+                
+                // Reload tasks to verify
+                await loadTasksForTest();
+                
+                document.getElementById('testResults').innerHTML = `
+                    <div style="color: green; padding: 10px; border: 1px solid green; margin-top: 10px;">
+                        <strong>✅ Success!</strong> Task status updated to "${newStatus}"
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('🔍 TEST: Error updating status:', error);
+                document.getElementById('testResults').innerHTML = `
+                    <div style="color: red; padding: 10px; border: 1px solid red; margin-top: 10px;">
+                        <strong>❌ Error updating status:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html> 
