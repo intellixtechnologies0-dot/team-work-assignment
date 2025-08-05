@@ -13,88 +13,165 @@
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
         <div class="login-container">
-                            <div class="login-header">
-                    <h1>Intellix Technologies</h1>
-                    <h2>Project: Canteen App</h2>
-                    <h3>Team Member Portal</h3>
-                    <p>Sign in to access your team workspace</p>
+            <div class="login-header">
+                <div class="brand-logo">
+                    <i class="fas fa-building"></i>
                 </div>
+                <h1>Intellix Technologies</h1>
+                <h2>Project: Canteen App</h2>
+                <h3>Team Member Portal</h3>
+                <p>Sign in to access your team workspace</p>
+            </div>
             
             <!-- Sign In Form -->
             <form id="signinForm" class="login-form">
                 <div class="form-group">
-                    <label for="signinEmail">Email:</label>
-                    <input type="email" id="signinEmail" required>
+                    <label for="signinEmail">Email Address</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="signinEmail" placeholder="Enter your email" required>
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label for="signinPassword">Password:</label>
-                    <input type="password" id="signinPassword" required>
+                    <label for="signinPassword">Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="signinPassword" placeholder="Enter your password" required>
+                    </div>
                 </div>
                 <button type="submit" class="btn btn-primary btn-full">
                     <i class="fas fa-sign-in-alt"></i> Sign In
                 </button>
             </form>
-            
-
         </div>
     </div>
 
     <!-- Main Application (Hidden until logged in) -->
     <div id="mainApp" class="main-app" style="display: none;">
-        <div class="container">
-            <header class="header">
-                <div class="header-content">
-                    <h1>Intellix Technologies</h1>
-                    <h2>Project: Canteen App</h2>
-                    <h3>Team Member Portal</h3>
-                    <p>Manage your tasks here</p>
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="brand-section">
+                    <div class="brand-logo">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="brand-text">
+                        <h1>Intellix Technologies</h1>
+                        <h2>Project: Canteen App</h2>
+                        <h3>Team Member Portal</h3>
+                    </div>
                 </div>
-                                                 <div class="user-info">
-                    <span id="userName">Welcome!</span>
-                    <button class="btn btn-secondary" onclick="signOut()">
-                        <i class="fas fa-sign-out-alt"></i> Sign Out
-                    </button>
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <span id="userName">Welcome!</span>
+                        <button class="btn btn-outline" onclick="signOut()">
+                            <i class="fas fa-sign-out-alt"></i> Sign Out
+                        </button>
+                    </div>
                 </div>
-            </header>
+            </div>
+        </header>
 
-            <div class="main-content">
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container">
+                <!-- Dashboard Overview -->
+                <section class="dashboard-overview">
+                    <div class="overview-cards">
+                        <div class="overview-card">
+                            <div class="card-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Team Members</h3>
+                                <p id="memberCount">0</p>
+                            </div>
+                        </div>
+                        <div class="overview-card">
+                            <div class="card-icon">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Total Tasks</h3>
+                                <p id="taskCount">0</p>
+                            </div>
+                        </div>
+                        <div class="overview-card">
+                            <div class="card-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>In Progress</h3>
+                                <p id="inProgressCount">0</p>
+                            </div>
+                        </div>
+                        <div class="overview-card">
+                            <div class="card-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Completed</h3>
+                                <p id="completedCount">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Team Members Section -->
-                <section class="section team-members-section">
-                                    <div class="section-header">
-                    <h2><i class="fas fa-user-friends"></i> Team Members</h2>
-                    <button class="btn btn-primary" onclick="openModal('memberModal')" id="addMemberBtn">
-                        <i class="fas fa-plus"></i> Add Member
-                    </button>
-                </div>
+                <section class="content-section team-members-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i class="fas fa-user-friends"></i>
+                            <h2>Team Members</h2>
+                        </div>
+                        <button class="btn btn-primary" onclick="openModal('memberModal')" id="addMemberBtn">
+                            <i class="fas fa-plus"></i> Add Member
+                        </button>
+                    </div>
                     <div class="members-grid" id="membersGrid">
                         <!-- Team members will be displayed here -->
                     </div>
                 </section>
 
                 <!-- Tasks Section -->
-                <section class="section">
-                                    <div class="section-header">
-                    <h2><i class="fas fa-tasks"></i> Tasks</h2>
-                    <button class="btn btn-primary" onclick="openModal('taskModal')" id="createTaskBtn">
-                        <i class="fas fa-plus"></i> Create Task
-                    </button>
-                </div>
+                <section class="content-section tasks-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i class="fas fa-tasks"></i>
+                            <h2>Task Management</h2>
+                        </div>
+                        <button class="btn btn-primary" onclick="openModal('taskModal')" id="createTaskBtn">
+                            <i class="fas fa-plus"></i> Create Task
+                        </button>
+                    </div>
                     <div class="tasks-container">
                         <div class="task-columns">
                             <div class="task-column">
-                                <h3>To Do</h3>
+                                <div class="column-header">
+                                    <h3><i class="fas fa-list"></i> To Do</h3>
+                                    <span class="task-count" id="todoCount">0</span>
+                                </div>
                                 <div class="task-list" id="todoTasks">
                                     <!-- Todo tasks will be here -->
                                 </div>
                             </div>
                             <div class="task-column">
-                                <h3>In Progress</h3>
+                                <div class="column-header">
+                                    <h3><i class="fas fa-clock"></i> In Progress</h3>
+                                    <span class="task-count" id="inProgressColumnCount">0</span>
+                                </div>
                                 <div class="task-list" id="inProgressTasks">
                                     <!-- In progress tasks will be here -->
                                 </div>
                             </div>
                             <div class="task-column">
-                                <h3>Completed</h3>
+                                <div class="column-header">
+                                    <h3><i class="fas fa-check-circle"></i> Completed</h3>
+                                    <span class="task-count" id="completedColumnCount">0</span>
+                                </div>
                                 <div class="task-list" id="completedTasks">
                                     <!-- Completed tasks will be here -->
                                 </div>
@@ -103,27 +180,36 @@
                     </div>
                 </section>
             </div>
-        </div>
+        </main>
 
         <!-- Add Member Modal -->
         <div id="memberModal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3>Add Team Member</h3>
+                    <h3><i class="fas fa-user-plus"></i> Add Team Member</h3>
                     <span class="close" onclick="closeModal('memberModal')">&times;</span>
                 </div>
                 <form id="memberForm">
                     <div class="form-group">
-                        <label for="memberName">Name:</label>
-                        <input type="text" id="memberName" required>
+                        <label for="memberName">Full Name</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="memberName" placeholder="Enter full name" required>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label for="memberEmail">Email:</label>
-                        <input type="email" id="memberEmail" required>
+                        <label for="memberEmail">Email Address</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="memberEmail" placeholder="Enter email address" required>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label for="memberRole">Role:</label>
-                        <input type="text" id="memberRole" required>
+                        <label for="memberRole">Role</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-briefcase"></i>
+                            <input type="text" id="memberRole" placeholder="Enter role/position" required>
+                        </div>
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" onclick="closeModal('memberModal')">Cancel</button>
@@ -137,35 +223,52 @@
         <div id="taskModal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3>Create New Task</h3>
+                    <h3><i class="fas fa-plus-circle"></i> Create New Task</h3>
                     <span class="close" onclick="closeModal('taskModal')">&times;</span>
                 </div>
                 <form id="taskForm">
                     <div class="form-group">
-                        <label for="taskTitle">Task Title:</label>
-                        <input type="text" id="taskTitle" required>
+                        <label for="taskTitle">Task Title</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-tag"></i>
+                            <input type="text" id="taskTitle" placeholder="Enter task title" required>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label for="taskDescription">Description:</label>
-                        <textarea id="taskDescription" rows="3" required></textarea>
+                        <label for="taskDescription">Description</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-align-left"></i>
+                            <textarea id="taskDescription" rows="3" placeholder="Enter task description" required></textarea>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label for="taskAssignee">Assign To:</label>
-                        <select id="taskAssignee" required>
-                            <option value="">Select a team member</option>
-                        </select>
+                        <label for="taskAssignee">Assign To</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user"></i>
+                            <select id="taskAssignee" required>
+                                <option value="">Select a team member</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="taskPriority">Priority:</label>
-                        <select id="taskPriority" required>
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="taskDueDate">Due Date:</label>
-                        <input type="date" id="taskDueDate" required>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="taskPriority">Priority</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-flag"></i>
+                                <select id="taskPriority" required>
+                                    <option value="low">Low</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="high">High</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="taskDueDate">Due Date</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-calendar"></i>
+                                <input type="date" id="taskDueDate" required>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" onclick="closeModal('taskModal')">Cancel</button>
@@ -179,36 +282,48 @@
         <div id="workProofModal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
-                                               <h3>Attach Work Proof</h3>
+                    <h3><i class="fas fa-paperclip"></i> Attach Work Proof</h3>
                     <span class="close" onclick="closeModal('workProofModal')">&times;</span>
                 </div>
                 <form id="workProofForm">
                     <input type="hidden" id="workProofTaskId">
                     <div class="form-group">
-                        <label for="workProofType">Proof Type:</label>
-                        <select id="workProofType" required onchange="toggleProofInput()">
-                            <option value="">Select proof type</option>
-                            <option value="link">Link (Google Drive, GitHub, etc.)</option>
-                            <option value="screenshot">Screenshot URL</option>
-                        </select>
+                        <label for="workProofType">Proof Type</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-file-alt"></i>
+                            <select id="workProofType" required onchange="toggleProofInput()">
+                                <option value="">Select proof type</option>
+                                <option value="link">Link (Google Drive, GitHub, etc.)</option>
+                                <option value="screenshot">Screenshot URL</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="form-group" id="linkInputGroup" style="display: none;">
-                        <label for="workProofLink">Work Link:</label>
-                        <input type="url" id="workProofLink" placeholder="https://drive.google.com/... or https://github.com/...">
+                        <label for="workProofLink">Work Link</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-link"></i>
+                            <input type="url" id="workProofLink" placeholder="https://drive.google.com/... or https://github.com/...">
+                        </div>
                         <small class="form-help">Paste a link to your work (Google Drive, GitHub, Figma, etc.)</small>
                     </div>
                     <div class="form-group" id="screenshotInputGroup" style="display: none;">
-                        <label for="workProofScreenshot">Screenshot URL:</label>
-                        <input type="url" id="workProofScreenshot" placeholder="https://imgur.com/... or https://i.imgur.com/...">
+                        <label for="workProofScreenshot">Screenshot URL</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-image"></i>
+                            <input type="url" id="workProofScreenshot" placeholder="https://imgur.com/... or https://i.imgur.com/...">
+                        </div>
                         <small class="form-help">Upload screenshot to Imgur or similar service and paste the URL</small>
                     </div>
                     <div class="form-group">
-                        <label for="workProofNotes">Notes (Optional):</label>
-                        <textarea id="workProofNotes" rows="3" placeholder="Add any notes about your work progress..."></textarea>
+                        <label for="workProofNotes">Notes (Optional)</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-sticky-note"></i>
+                            <textarea id="workProofNotes" rows="3" placeholder="Add any notes about your work progress..."></textarea>
+                        </div>
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" onclick="closeModal('workProofModal')">Cancel</button>
-                                                       <button type="submit" class="btn btn-primary">Attach Proof</button>
+                        <button type="submit" class="btn btn-primary">Attach Proof</button>
                     </div>
                 </form>
             </div>

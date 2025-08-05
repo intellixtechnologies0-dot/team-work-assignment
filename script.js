@@ -359,6 +359,8 @@ function renderTeamMembers() {
             </div>
         </div>
     `).join('');
+    
+    updateDashboardCounts();
 }
 
 // Task functions
@@ -531,6 +533,7 @@ function renderTasks() {
     renderTaskColumn('inProgressTasks', inProgressTasks);
     renderTaskColumn('completedTasks', completedTasks);
     
+    updateDashboardCounts();
     setupDragAndDrop();
 }
 
@@ -809,6 +812,51 @@ function formatDate(dateString) {
         return 'Tomorrow';
     } else {
         return date.toLocaleDateString();
+    }
+}
+
+function updateDashboardCounts() {
+    // Update member count
+    const memberCountElement = document.getElementById('memberCount');
+    if (memberCountElement) {
+        memberCountElement.textContent = teamMembers.length;
+    }
+    
+    // Update task counts
+    const taskCountElement = document.getElementById('taskCount');
+    const inProgressCountElement = document.getElementById('inProgressCount');
+    const completedCountElement = document.getElementById('completedCount');
+    const todoCountElement = document.getElementById('todoCount');
+    const inProgressColumnCountElement = document.getElementById('inProgressColumnCount');
+    const completedColumnCountElement = document.getElementById('completedColumnCount');
+    
+    if (taskCountElement) {
+        taskCountElement.textContent = tasks.length;
+    }
+    
+    if (inProgressCountElement) {
+        const inProgressCount = tasks.filter(task => task.status === 'inProgress').length;
+        inProgressCountElement.textContent = inProgressCount;
+    }
+    
+    if (completedCountElement) {
+        const completedCount = tasks.filter(task => task.status === 'completed').length;
+        completedCountElement.textContent = completedCount;
+    }
+    
+    if (todoCountElement) {
+        const todoCount = tasks.filter(task => task.status === 'todo').length;
+        todoCountElement.textContent = todoCount;
+    }
+    
+    if (inProgressColumnCountElement) {
+        const inProgressCount = tasks.filter(task => task.status === 'inProgress').length;
+        inProgressColumnCountElement.textContent = inProgressCount;
+    }
+    
+    if (completedColumnCountElement) {
+        const completedCount = tasks.filter(task => task.status === 'completed').length;
+        completedColumnCountElement.textContent = completedCount;
     }
 }
 
