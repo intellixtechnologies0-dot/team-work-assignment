@@ -3,7 +3,7 @@ const SUPABASE_URL = 'https://cneoifzzhyvfpxvhsxgp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuZW9pZnp6aHl2ZnB4dmhzeGdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzOTU4MjksImV4cCI6MjA2OTk3MTgyOX0.oI7M_AqPADdAU_gdtn6r20zyotZQ2N1caiQkCmZXC_I';
 
 // Initialize Supabase client
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Global variables
 let currentUser = null;
