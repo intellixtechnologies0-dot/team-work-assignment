@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Current State</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Current State Test</h1>
+    
+    <div class="test-section info">
+        <h3>📋 Test Instructions:</h3>
+        <ol>
+            <li>Open your main application: <a href="https://intellixtechnologies0-dot.github.io/team-work-assignment/" target="_blank">Team Work Assignment</a></li>
+            <li>Sign in as a team member</li>
+            <li>Move a task to "In Progress"</li>
+            <li>Check if you see a "📎 Attach" button</li>
+            <li>Check if you see a "✅ Completed" button (should be disabled)</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>🔍 What to Check:</h3>
+        <ul>
+            <li><strong>Button Text:</strong> Should show "📎 Attach" (not "Add Proof")</li>
+            <li><strong>Complete Button:</strong> Should show "✅ Completed" (not "Complete")</li>
+            <li><strong>Modal Title:</strong> Should show "Attach Work Proof"</li>
+            <li><strong>Modal Button:</strong> Should show "Attach Proof"</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>🐛 If Issues Persist:</h3>
+        <ol>
+            <li><strong>Database Migration:</strong> Run the SQL script in Supabase</li>
+            <li><strong>Browser Cache:</strong> Try hard refresh (Ctrl+Shift+R)</li>
+            <li><strong>Incognito Mode:</strong> Test in private browsing</li>
+            <li><strong>Check Console:</strong> Press F12 and look for errors</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>📝 SQL Script to Run:</h3>
+        <p>Make sure you've run this in your Supabase SQL Editor:</p>
+        <pre style="background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto;">
+-- Add Work Proof Column to Tasks Table
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS work_proof TEXT;
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS work_proof_updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+        </pre>
+    </div>
+
+    <button onclick="window.open('https://intellixtechnologies0-dot.github.io/team-work-assignment/', '_blank')">
+        🚀 Open Main Application
+    </button>
+    
+    <button onclick="window.open('https://supabase.com/dashboard/project/cneoifzzhyvfpxvhsxgp/sql', '_blank')">
+        🗄️ Open Supabase SQL Editor
+    </button>
+</body>
+</html> 
