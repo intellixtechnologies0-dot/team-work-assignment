@@ -386,6 +386,11 @@ async function handleAddTask(event) {
     
     const assignee = teamMembers.find(member => member.id === assigneeId);
     
+    if (!assignee) {
+        showNotification('Selected team member not found', 'error');
+        return;
+    }
+    
     try {
         const { data, error } = await supabase
             .from('tasks')
@@ -394,7 +399,7 @@ async function handleAddTask(event) {
                     title: title,
                     description: description,
                     assignee_id: assigneeId,
-                    assignee_name: assignee ? assignee.name : 'Unassigned',
+                    assignee_name: assignee.name,
                     priority: priority,
                     due_date: dueDate,
                     status: 'todo',
@@ -463,7 +468,23 @@ async function loadTasks() {
         
         // If not admin, only show tasks assigned to current user
         if (!window.isAdmin) {
-            query = query.eq('assignee_id', currentUser.id);
+            // For team members, we need to find tasks assigned to them by email
+            // First, let's get the team member record for the current user
+            const { data: memberData, error: memberError } = await supabase
+                .from('team_members')
+                .select('id')
+                .eq('email', currentUser.email)
+                .single();
+            
+            if (memberError) {
+                console.log('No team member record found for:', currentUser.email);
+                tasks = [];
+                renderTasks();
+                return;
+            }
+            
+            // Now filter tasks by the team member ID
+            query = query.eq('assignee_id', memberData.id);
         }
         
         const { data, error } = await query;
