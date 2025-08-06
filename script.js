@@ -134,6 +134,11 @@ function setupNavigation() {
             const targetElement = document.getElementById(targetSection);
             if (targetElement) {
                 targetElement.classList.add('active');
+                
+                // Load admin data if admin section is accessed
+                if (targetSection === 'admin') {
+                    loadAdminData();
+                }
             }
         });
     });
@@ -991,4 +996,187 @@ window.closeModal = closeModal;
 window.deleteMember = deleteMember;
 window.deleteTask = deleteTask;
 window.moveTask = moveTask;
-window.signOut = signOut; 
+window.signOut = signOut;
+
+// Admin Panel Functions
+async function loadAdminData() {
+    try {
+        await Promise.all([
+            loadTeamMembers(),
+            loadTasks()
+        ]);
+        
+        updateAdminStats();
+        renderMemberTasksOverview();
+    } catch (error) {
+        console.error('Error loading admin data:', error);
+        showNotification('Error loading admin data', 'error');
+    }
+}
+
+function updateAdminStats() {
+    const totalMembers = teamMembers.length;
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter(task => task.status === 'completed').length;
+    const overdueTasks = tasks.filter(task => {
+        if (task.status === 'completed') return false;
+        const dueDate = new Date(task.due_date);
+        const today = new Date();
+        return dueDate < today;
+    }).length;
+
+    document.getElementById('adminMemberCount').textContent = totalMembers;
+    document.getElementById('adminTaskCount').textContent = totalTasks;
+    document.getElementById('adminCompletedCount').textContent = completedTasks;
+    document.getElementById('overdueTaskCount').textContent = overdueTasks;
+}
+
+function renderMemberTasksOverview() {
+    const memberTasksGrid = document.getElementById('memberTasksGrid');
+    if (!memberTasksGrid) return;
+
+    memberTasksGrid.innerHTML = '';
+
+    teamMembers.forEach(member => {
+        const memberTasks = tasks.filter(task => task.assignee === member.email);
+        const memberCard = createMemberTaskCard(member, memberTasks);
+        memberTasksGrid.appendChild(memberCard);
+    });
+}
+
+function createMemberTaskCard(member, memberTasks) {
+    const card = document.createElement('div');
+    card.className = 'member-task-card';
+
+    const todoTasks = memberTasks.filter(task => task.status === 'todo');
+    const inProgressTasks = memberTasks.filter(task => task.status === 'inProgress');
+    const completedTasks = memberTasks.filter(task => task.status === 'completed');
+    const overdueTasks = memberTasks.filter(task => {
+        if (task.status === 'completed') return false;
+        const dueDate = new Date(task.due_date);
+        const today = new Date();
+        return dueDate < today;
+    });
+
+    const memberInitials = member.name.split(' ').map(n => n[0]).join('').toUpperCase();
+
+    card.innerHTML = `
+        <div class="member-header">
+            <div class="member-avatar">${memberInitials}</div>
+            <div class="member-info">
+                <h4>${member.name}</h4>
+                <p>${member.role}</p>
+            </div>
+        </div>
+        
+        <div class="member-stats">
+            <div class="member-stat">
+                <span class="member-stat-number">${todoTasks.length}</span>
+                <span class="member-stat-label">To Do</span>
+            </div>
+            <div class="member-stat">
+                <span class="member-stat-number">${inProgressTasks.length}</span>
+                <span class="member-stat-label">In Progress</span>
+            </div>
+            <div class="member-stat">
+                <span class="member-stat-number">${completedTasks.length}</span>
+                <span class="member-stat-label">Completed</span>
+            </div>
+            <div class="member-stat">
+                <span class="member-stat-number">${overdueTasks.length}</span>
+                <span class="member-stat-label">Overdue</span>
+            </div>
+        </div>
+        
+        <div class="member-tasks-list">
+            ${memberTasks.map(task => createMemberTaskItem(task)).join('')}
+        </div>
+    `;
+
+    return card;
+}
+
+function createMemberTaskItem(task) {
+    const isOverdue = task.status !== 'completed' && new Date(task.due_date) < new Date();
+    const priorityClass = task.priority ? `${task.priority}-priority` : '';
+    const overdueClass = isOverdue ? 'overdue' : '';
+    const statusClass = `status-${task.status.replace(' ', '-')}`;
+
+    return `
+        <div class="member-task-item ${priorityClass} ${overdueClass}">
+            <div class="member-task-title">${task.title}</div>
+            <div class="member-task-meta">
+                <span class="member-task-status ${statusClass}">${task.status}</span>
+                <span>Due: ${formatDate(task.due_date)}</span>
+            </div>
+        </div>
+    `;
+}
+
+function refreshAdminView() {
+    loadAdminData();
+    showNotification('Admin view refreshed', 'success');
+}
+
+function exportMemberTasks() {
+    const csvData = generateMemberTasksCSV();
+    downloadCSV(csvData, 'member-tasks-report.csv');
+    showNotification('Report exported successfully', 'success');
+}
+
+function generateMemberTasksCSV() {
+    let csv = 'Member Name,Email,Role,Task Title,Status,Priority,Due Date,Description\n';
+    
+    teamMembers.forEach(member => {
+        const memberTasks = tasks.filter(task => task.assignee === member.email);
+        
+        if (memberTasks.length === 0) {
+            csv += `"${member.name}","${member.email}","${member.role}","No tasks assigned","","","",""\n`;
+        } else {
+            memberTasks.forEach(task => {
+                csv += `"${member.name}","${member.email}","${member.role}","${task.title}","${task.status}","${task.priority}","${task.due_date}","${task.description.replace(/"/g, '""')}"\n`;
+            });
+        }
+    });
+    
+    return csv;
+}
+
+function downloadCSV(csvContent, filename) {
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+}
+
+// Update the updateUIForUserRole function to show admin panel for admins
+function updateUIForUserRole(isAdmin) {
+    const adminNavItem = document.getElementById('adminNavItem');
+    const addMemberBtn = document.getElementById('addMemberBtn');
+    const createTaskBtn = document.getElementById('createTaskBtn');
+    const createTaskBtn2 = document.getElementById('createTaskBtn2');
+
+    if (isAdmin) {
+        if (adminNavItem) adminNavItem.style.display = 'flex';
+        if (addMemberBtn) addMemberBtn.style.display = 'flex';
+        if (createTaskBtn) createTaskBtn.style.display = 'flex';
+        if (createTaskBtn2) createTaskBtn2.style.display = 'flex';
+    } else {
+        if (adminNavItem) adminNavItem.style.display = 'none';
+        if (addMemberBtn) addMemberBtn.style.display = 'none';
+        if (createTaskBtn) createTaskBtn.style.display = 'none';
+        if (createTaskBtn2) createTaskBtn2.style.display = 'none';
+    }
+}
+
+// Export admin functions for global access
+window.refreshAdminView = refreshAdminView;
+window.exportMemberTasks = exportMemberTasks; 

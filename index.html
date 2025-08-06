@@ -73,6 +73,10 @@
                     <i class="fas fa-tasks"></i>
                     <span>Task Management</span>
                 </a>
+                <a href="#admin" class="nav-item" data-section="admin" id="adminNavItem" style="display: none;">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Admin Panel</span>
+                </a>
             </div>
             
             <div class="sidebar-footer">
@@ -198,6 +202,67 @@
                             </div>
                             <div id="completedTasks" class="task-list"></div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Admin Panel Section -->
+            <section id="admin" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-user-shield"></i> Admin Panel</h2>
+                    <div class="admin-controls">
+                        <button class="btn btn-secondary" onclick="refreshAdminView()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <button class="btn btn-primary" onclick="exportMemberTasks()">
+                            <i class="fas fa-download"></i> Export Report
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="admin-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Total Members</h3>
+                            <p id="adminMemberCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Total Tasks</h3>
+                            <p id="adminTaskCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Overdue Tasks</h3>
+                            <p id="overdueTaskCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Completed Tasks</h3>
+                            <p id="adminCompletedCount">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="member-tasks-overview">
+                    <h3><i class="fas fa-list-alt"></i> Member Tasks Overview</h3>
+                    <div class="member-tasks-grid" id="memberTasksGrid">
+                        <!-- Member task cards will be populated here -->
                     </div>
                 </div>
             </section>
