@@ -303,6 +303,9 @@ function updateUIForUserRole(isAdmin) {
         if (memberTasksOverview) {
             memberTasksOverview.style.display = 'block';
             console.log('Showing member tasks overview');
+            
+            // Load member tasks data for admin on initial load
+            loadMemberTasksData();
         }
     } else {
         // Regular users can only view their tasks

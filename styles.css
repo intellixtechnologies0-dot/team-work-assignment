@@ -1019,6 +1019,7 @@ form {
     padding: 25px;
     box-shadow: 0 8px 30px var(--shadow-medium);
     border: 1px solid var(--border-color);
+    margin-top: 40px;
 }
 
 .member-tasks-overview h3 {
