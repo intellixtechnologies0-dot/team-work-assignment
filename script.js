@@ -135,9 +135,9 @@ function setupNavigation() {
             if (targetElement) {
                 targetElement.classList.add('active');
                 
-                // Load admin data if admin section is accessed
-                if (targetSection === 'admin') {
-                    loadAdminData();
+                // Load member tasks data if dashboard is accessed and user is admin
+                if (targetSection === 'dashboard' && window.isAdmin) {
+                    loadMemberTasksData();
                 }
             }
         });
@@ -282,6 +282,7 @@ function updateUIForUserRole(isAdmin) {
     
     const addMemberBtns = document.querySelectorAll('#addMemberBtn, #addMemberBtn2');
     const createTaskBtns = document.querySelectorAll('#createTaskBtn, #createTaskBtn2');
+    const memberTasksOverview = document.getElementById('memberTasksOverview');
     
     if (isAdmin) {
         // Admin can see all features
@@ -297,6 +298,12 @@ function updateUIForUserRole(isAdmin) {
                 console.log('Showing create task button');
             }
         });
+        
+        // Show member tasks overview for admin
+        if (memberTasksOverview) {
+            memberTasksOverview.style.display = 'block';
+            console.log('Showing member tasks overview');
+        }
     } else {
         // Regular users can only view their tasks
         addMemberBtns.forEach(btn => {
@@ -311,6 +318,12 @@ function updateUIForUserRole(isAdmin) {
                 console.log('Hiding create task button');
             }
         });
+        
+        // Hide member tasks overview for regular users
+        if (memberTasksOverview) {
+            memberTasksOverview.style.display = 'none';
+            console.log('Hiding member tasks overview');
+        }
     }
 }
 
@@ -998,37 +1011,19 @@ window.deleteTask = deleteTask;
 window.moveTask = moveTask;
 window.signOut = signOut;
 
-// Admin Panel Functions
-async function loadAdminData() {
+// Member Tasks Functions
+async function loadMemberTasksData() {
     try {
         await Promise.all([
             loadTeamMembers(),
             loadTasks()
         ]);
         
-        updateAdminStats();
         renderMemberTasksOverview();
     } catch (error) {
-        console.error('Error loading admin data:', error);
-        showNotification('Error loading admin data', 'error');
+        console.error('Error loading member tasks data:', error);
+        showNotification('Error loading member tasks data', 'error');
     }
-}
-
-function updateAdminStats() {
-    const totalMembers = teamMembers.length;
-    const totalTasks = tasks.length;
-    const completedTasks = tasks.filter(task => task.status === 'completed').length;
-    const overdueTasks = tasks.filter(task => {
-        if (task.status === 'completed') return false;
-        const dueDate = new Date(task.due_date);
-        const today = new Date();
-        return dueDate < today;
-    }).length;
-
-    document.getElementById('adminMemberCount').textContent = totalMembers;
-    document.getElementById('adminTaskCount').textContent = totalTasks;
-    document.getElementById('adminCompletedCount').textContent = completedTasks;
-    document.getElementById('overdueTaskCount').textContent = overdueTasks;
 }
 
 function renderMemberTasksOverview() {
@@ -1113,9 +1108,9 @@ function createMemberTaskItem(task) {
     `;
 }
 
-function refreshAdminView() {
-    loadAdminData();
-    showNotification('Admin view refreshed', 'success');
+function refreshMemberTasksView() {
+    loadMemberTasksData();
+    showNotification('Member tasks view refreshed', 'success');
 }
 
 function exportMemberTasks() {
@@ -1157,26 +1152,6 @@ function downloadCSV(csvContent, filename) {
     }
 }
 
-// Update the updateUIForUserRole function to show admin panel for admins
-function updateUIForUserRole(isAdmin) {
-    const adminNavItem = document.getElementById('adminNavItem');
-    const addMemberBtn = document.getElementById('addMemberBtn');
-    const createTaskBtn = document.getElementById('createTaskBtn');
-    const createTaskBtn2 = document.getElementById('createTaskBtn2');
-
-    if (isAdmin) {
-        if (adminNavItem) adminNavItem.style.display = 'flex';
-        if (addMemberBtn) addMemberBtn.style.display = 'flex';
-        if (createTaskBtn) createTaskBtn.style.display = 'flex';
-        if (createTaskBtn2) createTaskBtn2.style.display = 'flex';
-    } else {
-        if (adminNavItem) adminNavItem.style.display = 'none';
-        if (addMemberBtn) addMemberBtn.style.display = 'none';
-        if (createTaskBtn) createTaskBtn.style.display = 'none';
-        if (createTaskBtn2) createTaskBtn2.style.display = 'none';
-    }
-}
-
-// Export admin functions for global access
-window.refreshAdminView = refreshAdminView;
+// Export member tasks functions for global access
+window.refreshMemberTasksView = refreshMemberTasksView;
 window.exportMemberTasks = exportMemberTasks; 
