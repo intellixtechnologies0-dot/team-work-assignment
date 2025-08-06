@@ -280,8 +280,8 @@ function showMainApp() {
 function updateUIForUserRole(isAdmin) {
     console.log('Updating UI for user role. Is admin:', isAdmin);
     
-    const addMemberBtns = document.querySelectorAll('#addMemberBtn, #addMemberBtn2');
-    const createTaskBtns = document.querySelectorAll('#createTaskBtn, #createTaskBtn2');
+    const addMemberBtns = document.querySelectorAll('#addMemberBtn2');
+    const createTaskBtns = document.querySelectorAll('#createTaskBtn2');
     const memberTasksOverview = document.getElementById('memberTasksOverview');
     
     if (isAdmin) {
