@@ -1,180 +1,246 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Work Assignment - Debug Version</title>
+    <title>Intellix Technologies - Team Portal (Debug)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Local Supabase library to avoid browser warnings -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 10000;
+            max-width: 300px;
+        }
+        
+        .debug-info h4 {
+            margin: 0 0 10px 0;
+            color: #ff6b35;
+        }
+        
+        .debug-info p {
+            margin: 5px 0;
+        }
+        
+        .theme-toggle-debug {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #ff6b35;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 10000;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
+    <!-- Debug Info Panel -->
+    <div class="debug-info">
+        <h4>🔧 Debug Info</h4>
+        <p><strong>Current Theme:</strong> <span id="debugTheme">Light</span></p>
+        <p><strong>Theme Toggle Found:</strong> <span id="debugToggleFound">Checking...</span></p>
+        <p><strong>LocalStorage Theme:</strong> <span id="debugLocalStorage">Checking...</span></p>
+        <p><strong>System Prefers Dark:</strong> <span id="debugSystemPref">Checking...</span></p>
+    </div>
+    
+    <!-- Debug Theme Toggle -->
+    <button id="debugThemeToggle" class="theme-toggle-debug">
+        🌙 Toggle Theme (Debug)
+    </button>
+
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
         <div class="login-container">
             <div class="login-header">
-                <h1><i class="fas fa-users"></i> Team Work Assignment</h1>
-                <p>Debug Version - Check console for detailed logs</p>
+                <div class="brand-logo">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <h1>Intellix Technologies</h1>
+                <h2>Project: Canteen App</h2>
+                <h3>Team Member Portal</h3>
+                <p>Manage your tasks here</p>
             </div>
             
-            <!-- Sign In Form -->
             <form id="signinForm" class="login-form">
                 <div class="form-group">
-                    <label for="signinEmail">Email:</label>
-                    <input type="email" id="signinEmail" required>
+                    <label for="signinEmail">Email Address</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="signinEmail" required>
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label for="signinPassword">Password:</label>
-                    <input type="password" id="signinPassword" required>
+                    <label for="signinPassword">Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="signinPassword" required>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-full">
+                <button type="submit" class="btn btn-full btn-primary">
                     <i class="fas fa-sign-in-alt"></i> Sign In
                 </button>
             </form>
-            
-            <div class="login-info">
-                <p><strong>Debug Mode:</strong> Open browser console (F12) to see detailed logs</p>
-                <p>This will help identify the exact error causing "Error loading tasks"</p>
-            </div>
         </div>
     </div>
 
-    <!-- Main Application (Hidden until logged in) -->
-    <div id="mainApp" class="main-app" style="display: none;">
-        <div class="container">
-            <header class="header">
-                <div class="header-content">
-                    <h1><i class="fas fa-users"></i> Team Work Assignment</h1>
-                    <p>Debug Version - Check console for detailed logs</p>
+    <!-- Main Application -->
+    <div id="mainApp" class="main-app">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-logo">
+                    <i class="fas fa-rocket"></i>
                 </div>
+                <div class="brand-text">
+                    <h1>Intellix Technologies</h1>
+                    <p>Canteen App</p>
+                </div>
+                <button id="themeToggle" class="theme-toggle" title="Toggle Dark Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+            
+            <div class="sidebar-nav">
+                <a href="#dashboard" class="nav-item active" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#team" class="nav-item" data-section="team">
+                    <i class="fas fa-users"></i>
+                    <span>Team Members</span>
+                </a>
+                <a href="#tasks" class="nav-item" data-section="tasks">
+                    <i class="fas fa-tasks"></i>
+                    <span>Task Management</span>
+                </a>
+            </div>
+            
+            <div class="sidebar-footer">
                 <div class="user-info">
-                    <span id="userName">Welcome!</span>
-                    <button class="btn btn-secondary" onclick="signOut()">
-                        <i class="fas fa-sign-out-alt"></i> Sign Out
-                    </button>
-                </div>
-            </header>
-
-            <div class="main-content">
-                <!-- Team Members Section -->
-                <section class="section">
-                                    <div class="section-header">
-                    <h2><i class="fas fa-user-friends"></i> Team Members</h2>
-                    <button class="btn btn-primary" onclick="openModal('memberModal')" id="addMemberBtn">
-                        <i class="fas fa-plus"></i> Add Member
-                    </button>
-                </div>
-                    <div class="members-grid" id="membersGrid">
-                        <!-- Team members will be displayed here -->
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
                     </div>
-                </section>
-
-                <!-- Tasks Section -->
-                <section class="section">
-                                    <div class="section-header">
-                    <h2><i class="fas fa-tasks"></i> Tasks</h2>
-                    <button class="btn btn-primary" onclick="openModal('taskModal')" id="createTaskBtn">
-                        <i class="fas fa-plus"></i> Create Task
-                    </button>
+                    <div class="user-details">
+                        <span id="userName">User</span>
+                        <button onclick="signOut()" class="btn-signout">
+                            <i class="fas fa-sign-out-alt"></i> Sign Out
+                        </button>
+                    </div>
                 </div>
-                    <div class="tasks-container">
-                        <div class="task-columns">
-                            <div class="task-column">
-                                <h3>To Do</h3>
-                                <div class="task-list" id="todoTasks">
-                                    <!-- Todo tasks will be here -->
-                                </div>
-                            </div>
-                            <div class="task-column">
-                                <h3>In Progress</h3>
-                                <div class="task-list" id="inProgressTasks">
-                                    <!-- In progress tasks will be here -->
-                                </div>
-                            </div>
-                            <div class="task-column">
-                                <h3>Completed</h3>
-                                <div class="task-list" id="completedTasks">
-                                    <!-- Completed tasks will be here -->
-                                </div>
-                            </div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section active">
+                <div class="section-header">
+                    <h2><i class="fas fa-tachometer-alt"></i> Dashboard Overview</h2>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Team Members</h3>
+                            <p id="memberCount">0</p>
                         </div>
                     </div>
-                </section>
-            </div>
-        </div>
-
-        <!-- Add Member Modal -->
-        <div id="memberModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Add Team Member</h3>
-                    <span class="close" onclick="closeModal('memberModal')">&times;</span>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Total Tasks</h3>
+                            <p id="taskCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>In Progress</h3>
+                            <p id="inProgressCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Completed</h3>
+                            <p id="completedCount">0</p>
+                        </div>
+                    </div>
                 </div>
-                <form id="memberForm">
-                    <div class="form-group">
-                        <label for="memberName">Name:</label>
-                        <input type="text" id="memberName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="memberEmail">Email:</label>
-                        <input type="email" id="memberEmail" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="memberRole">Role:</label>
-                        <input type="text" id="memberRole" required>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal('memberModal')">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Add Member</button>
-                    </div>
-                </form>
-            </div>
-        </div>
 
-        <!-- Add Task Modal -->
-        <div id="taskModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Create New Task</h3>
-                    <span class="close" onclick="closeModal('taskModal')">&times;</span>
+                <div class="quick-actions">
+                    <h3>Quick Actions</h3>
+                    <div class="action-buttons">
+                        <button id="addMemberBtn" class="action-btn" onclick="openModal('memberModal')" style="display: none;">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Add Team Member</span>
+                        </button>
+                        <button id="createTaskBtn" class="action-btn" onclick="openModal('taskModal')" style="display: none;">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Create Task</span>
+                        </button>
+                    </div>
                 </div>
-                <form id="taskForm">
-                    <div class="form-group">
-                        <label for="taskTitle">Task Title:</label>
-                        <input type="text" id="taskTitle" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="taskDescription">Description:</label>
-                        <textarea id="taskDescription" rows="3" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="taskAssignee">Assign To:</label>
-                        <select id="taskAssignee" required>
-                            <option value="">Select a team member</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="taskPriority">Priority:</label>
-                        <select id="taskPriority" required>
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="taskDueDate">Due Date:</label>
-                        <input type="date" id="taskDueDate" required>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal('taskModal')">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Create Task</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+            </section>
+        </main>
     </div>
 
-    <script src="debug_script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+    
+    <script>
+        // Debug functions
+        function updateDebugInfo() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const themeToggle = document.getElementById('themeToggle');
+            const localStorageTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            document.getElementById('debugTheme').textContent = currentTheme || 'Not set';
+            document.getElementById('debugToggleFound').textContent = themeToggle ? 'Yes' : 'No';
+            document.getElementById('debugLocalStorage').textContent = localStorageTheme || 'None';
+            document.getElementById('debugSystemPref').textContent = systemPrefersDark ? 'Yes' : 'No';
+        }
+        
+        // Debug theme toggle
+        document.getElementById('debugThemeToggle').addEventListener('click', function() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+            updateDebugInfo();
+        });
+        
+        // Update debug info on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(updateDebugInfo, 1000); // Wait for main script to initialize
+        });
+        
+        // Update debug info when theme changes
+        const originalSetTheme = setTheme;
+        setTheme = function(theme) {
+            originalSetTheme(theme);
+            updateDebugInfo();
+        };
+    </script>
 </body>
 </html> 

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Debug Test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .debug-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .debug-header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--text-primary);
+        }
+        
+        .debug-info {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            color: var(--text-primary);
+        }
+        
+        .debug-button {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .debug-button:hover {
+            background: var(--accent-color);
+            color: white;
+        }
+        
+        .sidebar-test {
+            width: 300px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <div class="debug-header">
+            <h1><i class="fas fa-bug"></i> Theme Debug Test</h1>
+            <p>Testing theme toggle visibility and functionality</p>
+        </div>
+        
+        <div class="debug-info">
+            <h3>Debug Information:</h3>
+            <div id="debugInfo">Loading...</div>
+        </div>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <button onclick="testThemeToggle()" class="debug-button">
+                <i class="fas fa-search"></i> Find Theme Toggle
+            </button>
+            <button onclick="forceThemeToggle()" class="debug-button">
+                <i class="fas fa-moon"></i> Force Toggle
+            </button>
+            <button onclick="checkVisibility()" class="debug-button">
+                <i class="fas fa-eye"></i> Check Visibility
+            </button>
+        </div>
+        
+        <div class="sidebar-test">
+            <div class="sidebar-header">
+                <div class="brand-logo">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>Intellix Technologies</h1>
+                    <p>Canteen App</p>
+                </div>
+                <button id="themeToggle" class="theme-toggle" title="Toggle Dark Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="debug-info">
+            <h3>Current Theme State:</h3>
+            <div id="themeState">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        function testThemeToggle() {
+            const themeToggle = document.getElementById('themeToggle');
+            const debugInfo = document.getElementById('debugInfo');
+            
+            if (themeToggle) {
+                const rect = themeToggle.getBoundingClientRect();
+                const isVisible = rect.width > 0 && rect.height > 0;
+                const isInViewport = rect.top >= 0 && rect.left >= 0 && 
+                                   rect.bottom <= window.innerHeight && 
+                                   rect.right <= window.innerWidth;
+                
+                debugInfo.innerHTML = `
+                    <p><strong>Theme Toggle Found:</strong> Yes</p>
+                    <p><strong>Element Position:</strong> ${rect.top}, ${rect.left}</p>
+                    <p><strong>Element Size:</strong> ${rect.width} x ${rect.height}</p>
+                    <p><strong>Is Visible:</strong> ${isVisible ? 'Yes' : 'No'}</p>
+                    <p><strong>In Viewport:</strong> ${isInViewport ? 'Yes' : 'No'}</p>
+                    <p><strong>Display Style:</strong> ${getComputedStyle(themeToggle).display}</p>
+                    <p><strong>Visibility:</strong> ${getComputedStyle(themeToggle).visibility}</p>
+                    <p><strong>Opacity:</strong> ${getComputedStyle(themeToggle).opacity}</p>
+                    <p><strong>Z-Index:</strong> ${getComputedStyle(themeToggle).zIndex}</p>
+                `;
+            } else {
+                debugInfo.innerHTML = '<p><strong>Theme Toggle Found:</strong> No - Element not found!</p>';
+            }
+        }
+        
+        function forceThemeToggle() {
+            const themeToggle = document.getElementById('themeToggle');
+            if (themeToggle) {
+                themeToggle.click();
+                updateThemeState();
+            }
+        }
+        
+        function checkVisibility() {
+            const themeToggle = document.getElementById('themeToggle');
+            if (themeToggle) {
+                // Force the button to be visible
+                themeToggle.style.display = 'flex';
+                themeToggle.style.visibility = 'visible';
+                themeToggle.style.opacity = '1';
+                themeToggle.style.zIndex = '1000';
+                themeToggle.style.position = 'absolute';
+                themeToggle.style.right = '25px';
+                themeToggle.style.top = '50%';
+                themeToggle.style.transform = 'translateY(-50%)';
+                
+                console.log('Forced theme toggle visibility');
+                testThemeToggle();
+            }
+        }
+        
+        function updateThemeState() {
+            const themeState = document.getElementById('themeState');
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const savedTheme = localStorage.getItem('theme');
+            
+            themeState.innerHTML = `
+                <p><strong>Current Theme:</strong> ${currentTheme}</p>
+                <p><strong>Saved Theme:</strong> ${savedTheme || 'None'}</p>
+                <p><strong>data-theme Attribute:</strong> ${document.documentElement.getAttribute('data-theme')}</p>
+                <p><strong>CSS Variables Working:</strong> ${getComputedStyle(document.documentElement).getPropertyValue('--bg-primary') ? 'Yes' : 'No'}</p>
+            `;
+        }
+        
+        // Theme Management Functions
+        function initializeTheme() {
+            console.log('Initializing theme...');
+            
+            const savedTheme = localStorage.getItem('theme');
+            let theme = savedTheme;
+
+            if (!savedTheme) {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                theme = prefersDark ? 'dark' : 'light';
+                console.log('No saved theme, using system preference:', theme);
+            } else {
+                console.log('Found saved theme:', savedTheme);
+            }
+
+            setTheme(theme);
+            updateThemeState();
+        }
+
+        function toggleTheme() {
+            console.log('Toggle theme clicked');
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            console.log('Switching from', currentTheme, 'to', newTheme);
+            setTheme(newTheme);
+            updateThemeState();
+        }
+
+        function setTheme(theme) {
+            console.log('Setting theme to:', theme);
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+
+            const themeToggle = document.getElementById('themeToggle');
+            if (themeToggle) {
+                const icon = themeToggle.querySelector('i');
+                if (icon) {
+                    icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                    console.log('Updated icon to:', icon.className);
+                }
+            }
+
+            if (themeToggle) {
+                themeToggle.title = theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+            }
+            
+            console.log('Theme set successfully. Current data-theme:', document.documentElement.getAttribute('data-theme'));
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, initializing theme...');
+            initializeTheme();
+            
+            const themeToggle = document.getElementById('themeToggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('click', toggleTheme);
+                console.log('Theme toggle event listener added');
+            }
+            
+            updateThemeState();
+            testThemeToggle();
+        });
+
+        // Log any errors
+        window.addEventListener('error', function(e) {
+            console.error('JavaScript error:', e.error);
+        });
+    </script>
+</body>
+</html> 

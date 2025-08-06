@@ -28,6 +28,19 @@ function initializeApp() {
 }
 
 function setupEventListeners() {
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    console.log('Theme toggle element found:', themeToggle);
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
+        console.log('Theme toggle event listener added');
+    } else {
+        console.error('Theme toggle button not found!');
+    }
+    
+    // Initialize theme from localStorage
+    initializeTheme();
+    
     // Authentication forms
     document.getElementById('signinForm').addEventListener('submit', handleSignIn);
     
@@ -45,6 +58,58 @@ function setupEventListeners() {
             event.target.style.display = 'none';
         }
     });
+}
+
+// Theme Management Functions
+function initializeTheme() {
+    // Check for saved theme preference or default to system preference
+    const savedTheme = localStorage.getItem('theme');
+    let theme = savedTheme;
+    
+    // If no saved theme, use system preference
+    if (!savedTheme) {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        theme = prefersDark ? 'dark' : 'light';
+    }
+    
+    setTheme(theme);
+    
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        // Only auto-switch if user hasn't manually set a preference
+        if (!localStorage.getItem('theme')) {
+            setTheme(e.matches ? 'dark' : 'light');
+        }
+    });
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+}
+
+function setTheme(theme) {
+    console.log('Setting theme to:', theme);
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    
+    // Update theme toggle icon
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        const icon = themeToggle.querySelector('i');
+        if (icon) {
+            icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            console.log('Updated icon to:', icon.className);
+        }
+    }
+    
+    // Update theme toggle title
+    if (themeToggle) {
+        themeToggle.title = theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+    }
+    
+    console.log('Theme set successfully. Current data-theme:', document.documentElement.getAttribute('data-theme'));
 }
 
 function setupNavigation() {
